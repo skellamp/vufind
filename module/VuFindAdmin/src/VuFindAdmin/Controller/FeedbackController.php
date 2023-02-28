@@ -261,16 +261,6 @@ class FeedbackController extends AbstractAdmin
     }
 
     /**
-     * Get Feedback table
-     *
-     * @return Feedback
-     */
-    protected function getFeedbackTable(): Feedback
-    {
-        return $this->feedbackService->createEntity();
-    }
-
-    /**
      * Get unique values for a column
      *
      * @param string $column Column name

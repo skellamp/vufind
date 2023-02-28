@@ -51,14 +51,14 @@ class Database implements HandlerInterface, LoggerAwareInterface
      *
      * @var \VuFind\Db\Service\FeedbackService
      */
-    protected $db;
+    protected $feedbackService;
 
     /**
      * User database service
      *
      * @var \VuFind\Db\Service\UserService
      */
-    protected $us;
+    protected $userService;
 
     /**
      * Site base url
@@ -75,12 +75,12 @@ class Database implements HandlerInterface, LoggerAwareInterface
      * @param string                             $baseUrl Site base url
      */
     public function __construct(
-        \VuFind\Db\Service\FeedbackService $db,
-        \VuFind\Db\Service\UserService $us,
+        \VuFind\Db\Service\FeedbackService $feedbackService,
+        \VuFind\Db\Service\UserService $userService,
         string $baseUrl
     ) {
-        $this->db = $db;
-        $this->us = $us;
+        $this->feedbackService = $feedbackService;
+        $this->userService = $userService;
         $this->baseUrl = $baseUrl;
     }
 
@@ -100,14 +100,16 @@ class Database implements HandlerInterface, LoggerAwareInterface
     ): bool {
         $fields = $form->mapRequestParamsToFieldValues($params->fromPost());
         $fields = array_column($fields, 'value', 'name');
+        //Backward compatibility: convert Laminas\Db to Doctrine;
+        //we can simplify after completing migration.
         $userVal = null;
         if ($user) {
-            $userVal = $this->us->getUserById($user->id);
+            $userVal = $this->userService->getUserById($user->id);
         }
         $formData = $fields;
         unset($formData['message']);
         $now = new \DateTime();
-        $data = $this->db->createEntity()
+        $data = $this->feedbackService->createEntity()
             ->setUser($userVal)
             ->setMessage($fields['message'] ?? '')
             ->setFormData(json_encode($formData))
@@ -116,7 +118,7 @@ class Database implements HandlerInterface, LoggerAwareInterface
             ->setCreated($now)
             ->setUpdated($now);
         try {
-            $this->db->persistEntity($data);
+            $this->feedbackService->persistEntity($data);
         } catch (\Exception $e) {
             throw $e;
             $this->logError('Could not save feedback data: ' . $e->getMessage());

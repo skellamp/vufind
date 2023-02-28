@@ -55,9 +55,9 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      * @var array
      */
     protected $factories = [
-        UserService::class => AbstractServiceFactory::class,
         FeedbackService::class => AbstractServiceFactory::class,
         TagService::class => TagServiceFactory::class,
+        UserService::class => AbstractServiceFactory::class,
     ];
 
     /**

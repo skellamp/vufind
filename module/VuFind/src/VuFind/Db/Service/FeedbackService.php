@@ -44,6 +44,23 @@ use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 class FeedbackService extends AbstractService
 {
     /**
+     * Db columnn name to Doctrine entity field mapper
+     *
+     * @var array
+     */
+    protected $map = [
+        'form_data' => 'formData',
+        'form_name' => 'formName',
+        'site_url' => 'siteUrl',
+        'user_id' => 'user',
+        'updated_by' => 'updatedBy',
+        'message' => 'message',
+        'created' => 'created',
+        'updated' => 'updated',
+        'status' => 'status'
+    ];
+
+    /**
      * Constructor
      *
      * @param EntityManager       $entityManager       Doctrine ORM entity manager
@@ -151,9 +168,9 @@ class FeedbackService extends AbstractService
     public function getColumn(string $column): array
     {
         $parameters = [];
-        $dql = "SELECT f.id, f." . $this->mapper($column)
+        $dql = "SELECT f.id, f." . $this->map[$column]
             . " FROM " . $this->getEntityClass(Feedback::class) . " f "
-            . "ORDER BY f." . $this->mapper($column);
+            . "ORDER BY f." . $this->map[$column];
         $query = $this->entityManager->createQuery($dql);
         return $query->getResult();
     }
@@ -170,36 +187,12 @@ class FeedbackService extends AbstractService
     public function updateColumn($column, $value, $id)
     {
         $dql = "UPDATE " . $this->getEntityClass(Feedback::class) . " f "
-            . "SET f." . $this->mapper($column) . " = :value "
+            . "SET f." . $this->map[$column] . " = :value "
             . " WHERE f.id = :id";
         $parameters['value'] = $value;
         $parameters['id'] = $id;
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         return $query->execute();
-    }
-
-    /**
-     * Db columnn name to Doctrine entity field mapper
-     *
-     * @param string $column Column name
-     *
-     * @return string
-     */
-    public function mapper($column)
-    {
-        $map = [
-            'form_data' => 'formData',
-            'form_name' => 'formName',
-            'site_url' => 'siteUrl',
-            'user_id' => 'user',
-            'updated_by' => 'updatedBy',
-            'message' => 'message',
-            'created' => 'created',
-            'updated' => 'updated',
-            'status' => 'status'
-        ];
-
-        return $map[$column];
     }
 }

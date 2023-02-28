@@ -64,7 +64,10 @@ class UserService extends AbstractService
      */
     public function getUserById($id)
     {
-        $user = $this->entityManager->find(\VuFind\Db\Entity\User::class, $id);
+        $user = $this->entityManager->find(
+            $this->getEntityClass(\VuFind\Db\Entity\User::class),
+            $id
+        );
         return $user;
     }
 }
