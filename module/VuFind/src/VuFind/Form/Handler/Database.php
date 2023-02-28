@@ -70,17 +70,17 @@ class Database implements HandlerInterface, LoggerAwareInterface
     /**
      * Constructor
      *
-     * @param \VuFind\Db\Service\FeedbackService $feedbackService Feedback database service
-     * @param \VuFind\Db\Service\UserService     $userService     User database service
-     * @param string                             $baseUrl         Site base url
+     * @param \VuFind\Db\Service\FeedbackService $fs      Feedback database service
+     * @param \VuFind\Db\Service\UserService     $us      User database service
+     * @param string                             $baseUrl Site base url
      */
     public function __construct(
-        \VuFind\Db\Service\FeedbackService $feedbackService,
-        \VuFind\Db\Service\UserService $userService,
+        \VuFind\Db\Service\FeedbackService $fs,
+        \VuFind\Db\Service\UserService $us,
         string $baseUrl
     ) {
-        $this->feedbackService = $feedbackService;
-        $this->userService = $userService;
+        $this->feedbackService = $fs;
+        $this->userService = $us;
         $this->baseUrl = $baseUrl;
     }
 
