@@ -102,7 +102,7 @@ class FeedbackService extends AbstractService
             . "CONCAT(m.firstname, ' ', m.lastname) AS manager_name "
             . "FROM " . $this->getEntityClass(Feedback::class) . " f "
             . "LEFT JOIN f.user u "
-            . "LEFT JOIN f.updatedBy m ";
+            . "LEFT JOIN f.updatedBy m";
         $parameters = $dqlWhere = [];
 
         if (null !== $formName) {
@@ -147,7 +147,7 @@ class FeedbackService extends AbstractService
             return 0;
         }
         $dql = 'DELETE FROM ' . $this->getEntityClass(Feedback::class) . ' fb '
-            . ' WHERE fb.id IN (:ids)';
+            . 'WHERE fb.id IN (:ids)';
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters(compact('ids'));
         $query->execute();
@@ -163,7 +163,6 @@ class FeedbackService extends AbstractService
      */
     public function getColumn(string $column): array
     {
-        $parameters = [];
         $dql = "SELECT f.id, f." . $this->mapField($column)
             . " FROM " . $this->getEntityClass(Feedback::class) . " f "
             . "ORDER BY f." . $this->mapField($column);
@@ -182,9 +181,10 @@ class FeedbackService extends AbstractService
      */
     public function updateColumn($column, $value, $id)
     {
+        $parameters = [];
         $dql = "UPDATE " . $this->getEntityClass(Feedback::class) . " f "
             . "SET f." . $this->mapField($column) . " = :value "
-            . " WHERE f.id = :id";
+            . "WHERE f.id = :id";
         $parameters['value'] = $value;
         $parameters['id'] = $id;
         $query = $this->entityManager->createQuery($dql);
