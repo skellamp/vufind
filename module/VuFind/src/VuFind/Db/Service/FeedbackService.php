@@ -44,20 +44,16 @@ use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 class FeedbackService extends AbstractService
 {
     /**
-     * Db columnn name to Doctrine entity field mapper
+     * Db column name to Doctrine entity field mapper
      *
      * @var array
      */
-    protected $map = [
+    protected $fieldMap = [
         'form_data' => 'formData',
         'form_name' => 'formName',
         'site_url' => 'siteUrl',
         'user_id' => 'user',
         'updated_by' => 'updatedBy',
-        'message' => 'message',
-        'created' => 'created',
-        'updated' => 'updated',
-        'status' => 'status'
     ];
 
     /**
@@ -168,9 +164,9 @@ class FeedbackService extends AbstractService
     public function getColumn(string $column): array
     {
         $parameters = [];
-        $dql = "SELECT f.id, f." . $this->map[$column]
+        $dql = "SELECT f.id, f." . $this->mapField($column)
             . " FROM " . $this->getEntityClass(Feedback::class) . " f "
-            . "ORDER BY f." . $this->map[$column];
+            . "ORDER BY f." . $this->mapField($column);
         $query = $this->entityManager->createQuery($dql);
         return $query->getResult();
     }
@@ -187,12 +183,24 @@ class FeedbackService extends AbstractService
     public function updateColumn($column, $value, $id)
     {
         $dql = "UPDATE " . $this->getEntityClass(Feedback::class) . " f "
-            . "SET f." . $this->map[$column] . " = :value "
+            . "SET f." . $this->mapField($column) . " = :value "
             . " WHERE f.id = :id";
         $parameters['value'] = $value;
         $parameters['id'] = $id;
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         return $query->execute();
+    }
+
+    /**
+     * Column mapper
+     *
+     * @param string $column Column name
+     *
+     * @return string
+     */
+    protected function mapField($column)
+    {
+        return $this->fieldMap[$column] ?? $column;
     }
 }

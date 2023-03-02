@@ -100,8 +100,8 @@ class Database implements HandlerInterface, LoggerAwareInterface
     ): bool {
         $fields = $form->mapRequestParamsToFieldValues($params->fromPost());
         $fields = array_column($fields, 'value', 'name');
-        //Backward compatibility: convert Laminas\Db to Doctrine;
-        //we can simplify after completing migration.
+        // Backward compatibility: convert Laminas\Db to Doctrine;
+        // we can simplify after completing migration.
         $userVal = null;
         if ($user) {
             $userVal = $this->userService->getUserById($user->id);
