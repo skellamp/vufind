@@ -131,11 +131,27 @@ class FeedbackServiceTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * Data provider for testGetFeedbackByFilter.
+     *
+     * @return array
+     */
+    public function pageProvider(): array
+    {
+        return ['Test1' => [1],
+                'Test2' => [null],
+            ];
+    }
+
+    /**
      * Test getting feedback based on filters.
      *
+     * @param int|null $page Page number
+     *
      * @return void
+     *
+     * @dataProvider pageProvider
      */
-    public function testGetFeedbackByFilter(): void
+    public function testGetFeedbackByFilter($page): void
     {
         $mocks = $this->getConfiguredFeedbackService();
         $entityManager = $mocks['entityManager'];
@@ -162,17 +178,20 @@ class FeedbackServiceTest extends \PHPUnit\Framework\TestCase
                     'status' => 'closed']
             )
             ->willReturn($query);
+        if ($page) {
+            $query->expects($this->once())->method('setFirstResult')
+                ->with($this->equalTo(0));
+        }
         $query->expects($this->once())->method('setMaxResults')
             ->with($this->equalTo(20));
-        $query->expects($this->once())->method('setFirstResult')
-            ->with($this->equalTo(0));
-        $feedbackService->getFeedbackByFilter('foo', 'bar', 'closed', 1);
+
+        $feedbackService->getFeedbackByFilter('foo', 'bar', 'closed', $page);
     }
 
     /**
      * Get a configured FeedbackService object.
      *
-     * @return FeedbackService
+     * @return array
      */
     protected function getConfiguredFeedbackService()
     {
@@ -183,7 +202,7 @@ class FeedbackServiceTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $entityPluginManager->expects($this->once())->method('get')
-            ->with($this->equalTo('VuFind\Db\Entity\Feedback'))
+            ->with($this->equalTo(Feedback::class))
             ->willReturn(new Feedback());
         $feedbackService = new FeedbackService($entityManager, $entityPluginManager);
         return compact('entityManager', 'entityPluginManager', 'feedbackService');

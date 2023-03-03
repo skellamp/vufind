@@ -27,10 +27,8 @@
  */
 namespace VuFind\Db\Service;
 
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use VuFind\Db\Entity\Feedback;
-use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 
 /**
  * Database service for feedback.
@@ -55,19 +53,6 @@ class FeedbackService extends AbstractService
         'user_id' => 'user',
         'updated_by' => 'updatedBy',
     ];
-
-    /**
-     * Constructor
-     *
-     * @param EntityManager       $entityManager       Doctrine ORM entity manager
-     * @param EntityPluginManager $entityPluginManager VuFind entity plugin manager
-     */
-    public function __construct(
-        EntityManager $entityManager,
-        EntityPluginManager $entityPluginManager
-    ) {
-        parent::__construct($entityManager, $entityPluginManager);
-    }
 
     /**
      * Create a feedback entity object.
@@ -125,9 +110,9 @@ class FeedbackService extends AbstractService
         $query->setParameters($parameters);
 
         if (null !== $page) {
-            $query->setMaxResults($limit);
             $query->setFirstResult($limit * ($page - 1));
         }
+        $query->setMaxResults($limit);
         $paginator = new Paginator($query);
         $paginator->setUseOutputWalkers(false);
         return $paginator;
