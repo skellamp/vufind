@@ -79,7 +79,7 @@ class Feedback implements EntityInterface
     /**
      * Form data
      *
-     * @var string
+     * @var mixed
      *
      * @ORM\Column(name="form_data",
      *          type="json",
@@ -217,11 +217,11 @@ class Feedback implements EntityInterface
     /**
      * Form data setter.
      *
-     * @param string $data Form data
+     * @param mixed $data Form data
      *
      * @return Feedback
      */
-    public function setFormData(string $data): Feedback
+    public function setFormData($data): Feedback
     {
         $this->formData = $data;
         return $this;
@@ -230,7 +230,7 @@ class Feedback implements EntityInterface
     /**
      * Form data getter
      *
-     * @return string
+     * @return mixed
      */
     public function getFormData()
     {
