@@ -72,7 +72,7 @@ $this->headTitle($this->translate('VuFind Administration - Feedback Management')
         </tr>
         <?php foreach ($this->feedback as $feedbackItem): ?>
           <?php
-            $data = json_decode($feedbackItem[0]->getFormData(), true);
+            $data = $feedbackItem[0]->getFormData();
           ?>
           <tr>
             <td>
