@@ -112,7 +112,7 @@ class Database implements HandlerInterface, LoggerAwareInterface
         $data = $this->feedbackService->createEntity()
             ->setUser($userVal)
             ->setMessage($fields['message'] ?? '')
-            ->setFormData(json_encode($formData))
+            ->setFormData($formData)
             ->setFormName($form->getFormId())
             ->setSiteUrl($this->baseUrl)
             ->setCreated($now)
