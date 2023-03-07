@@ -181,9 +181,9 @@ class FeedbackServiceTest extends \PHPUnit\Framework\TestCase
         if ($page) {
             $query->expects($this->once())->method('setFirstResult')
                 ->with($this->equalTo(0));
+            $query->expects($this->once())->method('setMaxResults')
+                ->with($this->equalTo(20));
         }
-        $query->expects($this->once())->method('setMaxResults')
-            ->with($this->equalTo(20));
 
         $feedbackService->getFeedbackByFilter('foo', 'bar', 'closed', $page);
     }
