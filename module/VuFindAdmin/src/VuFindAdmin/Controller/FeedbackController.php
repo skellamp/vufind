@@ -68,15 +68,16 @@ class FeedbackController extends AbstractAdmin
      *
      * @param string $param          A key to check the url params for
      * @param bool   $prioritizePost If true, check the POST params first
+     * @param mixed  $default        Default value if no value found
      *
      * @return string
      */
-    protected function getParam($param, $prioritizePost = false)
+    protected function getParam($param, $prioritizePost = false, $default = null)
     {
         $primary = $prioritizePost ? 'fromPost' : 'fromQuery';
         $secondary = $prioritizePost ? 'fromQuery' : 'fromPost';
         return $this->params()->$primary($param)
-            ?? $this->params()->$secondary($param);
+            ?? $this->params()->$secondary($param, $default);
     }
 
     /**
