@@ -110,11 +110,10 @@ class FeedbackService extends AbstractService
         $query->setParameters($parameters);
 
         if (null !== $page) {
+            $query->setMaxResults($limit);
             $query->setFirstResult($limit * ($page - 1));
         }
-        $query->setMaxResults($limit);
         $paginator = new Paginator($query);
-        $paginator->setUseOutputWalkers(false);
         return $paginator;
     }
 
