@@ -184,7 +184,7 @@ class FeedbackService extends AbstractService
      *
      * @return string
      */
-    protected function mapField($column)
+    public function mapField($column)
     {
         return $this->fieldMap[$column] ?? $column;
     }

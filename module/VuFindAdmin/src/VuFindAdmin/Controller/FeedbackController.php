@@ -270,6 +270,7 @@ class FeedbackController extends AbstractAdmin
     protected function getUniqueColumn(string $column): array
     {
         $feedbackArray = $this->feedbackService->getColumn($column);
+        $column = $this->feedbackService->mapField($column);
         return array_unique(array_column($feedbackArray, $column));
     }
 
