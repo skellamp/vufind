@@ -107,7 +107,7 @@ class FeedbackController extends AbstractAdmin
         );
         $page = $this->getParam('page', false, '1');
         $view->feedback->setCurrentPageNumber($page);
-        $view->feedback->setItemCountPerPage(10);
+        $view->feedback->setItemCountPerPage(20);
         $view->setTemplate('admin/feedback/home');
         return $view;
     }
