@@ -86,7 +86,9 @@ class SocialstatsController extends AbstractAdmin
             ->get(CommentsService::class);
         $this->ratingsService = $sm->get(\VuFind\Db\Service\PluginManager::class)
             ->get(RatingsService::class);
-        $this->userResourceService = $sm->get(\VuFind\Db\Service\PluginManager::class)
+        $this->userResourceService = $sm->get(
+            \VuFind\Db\Service\PluginManager::class
+        )
             ->get(UserResourceService::class);
     }
 

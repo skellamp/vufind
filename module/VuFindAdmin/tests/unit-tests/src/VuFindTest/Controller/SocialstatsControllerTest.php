@@ -57,7 +57,11 @@ class SocialstatsControllerTest extends \PHPUnit\Framework\TestCase
         $container->set(\VuFind\Db\Service\PluginManager::class, $dbServices);
 
         $mockStats = ['users' => 5, 'resources' => 7, 'total' => 23];
-        $userResourceStats = ['users' => 5, 'lists' =>4, 'resources' => 7, 'total' => 23];
+        $userResourceStats = ['users' => 5,
+            'lists' =>4,
+            'resources' => 7,
+            'total' => 23
+        ];
         $commentsService = $this->getMockBuilder(CommentsService::class)
             ->disableOriginalConstructor()->onlyMethods(['getStatistics'])
             ->getMock();
