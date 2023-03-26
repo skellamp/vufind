@@ -49,7 +49,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         'ratings' => RatingsService::class,
         'tag' => TagService::class,
         'user' => UserService::class,
-        'userService' => UserResourceService::class,
+        'userResource' => UserResourceService::class,
     ];
 
     /**
