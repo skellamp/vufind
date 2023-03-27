@@ -56,19 +56,19 @@ class SocialstatsControllerTest extends \PHPUnit\Framework\TestCase
         $dbServices = new \VuFindTest\Container\MockContainer($this);
         $container->set(\VuFind\Db\Service\PluginManager::class, $dbServices);
 
-        $mockStats = ['users' => 5, 'resources' => 7, 'total' => 23];
+        $mockCommentsStats = ['users' => 5, 'resources' => 7, 'total' => 23];
+        $commentsService = $this->getMockBuilder(CommentsService::class)
+            ->disableOriginalConstructor()->onlyMethods(['getStatistics'])
+            ->getMock();
+        $commentsService->expects($this->once())->method('getStatistics')
+            ->will($this->returnValue($mockCommentsStats));
+        $dbServices->set(CommentsService::class, $commentsService);
+
         $userResourceStats = ['users' => 5,
             'lists' =>4,
             'resources' => 7,
             'total' => 23
         ];
-        $commentsService = $this->getMockBuilder(CommentsService::class)
-            ->disableOriginalConstructor()->onlyMethods(['getStatistics'])
-            ->getMock();
-        $commentsService->expects($this->once())->method('getStatistics')
-            ->will($this->returnValue($mockStats));
-        $dbServices->set(CommentsService::class, $commentsService);
-
         $userResourceService = $this->getMockBuilder(UserResourceService::class)
             ->disableOriginalConstructor()->onlyMethods(['getStatistics'])
             ->getMock();
@@ -76,19 +76,20 @@ class SocialstatsControllerTest extends \PHPUnit\Framework\TestCase
             ->will($this->returnValue($userResourceStats));
         $dbServices->set(UserResourceService::class, $userResourceService);
 
+        $mockRatingsStats = ['users' => 1, 'resources' => 2, 'total' => 3];
         $ratingsService = $this->getMockBuilder(RatingsService::class)
             ->disableOriginalConstructor()->onlyMethods(['getStatistics'])
             ->getMock();
         $ratingsService->expects($this->any())->method('getStatistics')
-            ->will($this->returnValue($mockStats));
+            ->will($this->returnValue($mockRatingsStats));
         $dbServices->set(RatingsService::class, $ratingsService);
 
+        $mockTagStats = ['users' => 31, 'resources' => 32, 'total' => 33];
         $tagService = $this->getMockBuilder(TagService::class)
             ->disableOriginalConstructor()->onlyMethods(['getStatistics'])
             ->getMock();
-
         $tagService->expects($this->once())->method('getStatistics')
-            ->will($this->returnValue($mockStats));
+            ->will($this->returnValue($mockTagStats));
         $dbServices->set(TagService::class, $tagService);
 
         // Build the controller to test:
@@ -97,9 +98,9 @@ class SocialstatsControllerTest extends \PHPUnit\Framework\TestCase
         // Confirm properly-constructed view object:
         $view = $c->homeAction();
         $this->assertEquals('admin/socialstats/home', $view->getTemplate());
-        $this->assertEquals($mockStats, $view->comments);
+        $this->assertEquals($mockCommentsStats, $view->comments);
         $this->assertEquals($userResourceStats, $view->favorites);
-        $this->assertEquals($mockStats, $view->tags);
-        $this->assertEquals($mockStats, $view->ratings);
+        $this->assertEquals($mockTagStats, $view->tags);
+        $this->assertEquals($mockRatingsStats, $view->ratings);
     }
 }
