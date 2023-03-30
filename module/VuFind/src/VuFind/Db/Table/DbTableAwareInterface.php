@@ -70,5 +70,5 @@ interface DbTableAwareInterface
      *
      * @return void
      */
-    public function setDbServiceManager(PluginManager $manager);
+    public function setDbServiceManager(\VuFind\Db\Service\PluginManager $manager);
 }
