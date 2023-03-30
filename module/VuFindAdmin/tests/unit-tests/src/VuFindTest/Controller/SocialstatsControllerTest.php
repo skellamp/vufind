@@ -6,7 +6,6 @@
  * PHP version 7
  *
  * Copyright (C) Villanova University 2023.
- * Copyright (C) Villanova University 2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -31,10 +30,7 @@ namespace VuFindTest\Controller;
 
 use VuFind\Db\Service\CommentsService;
 use VuFind\Db\Service\RatingsService;
-use VuFind\Db\Service\CommentsService;
-use VuFind\Db\Service\RatingsService;
 use VuFind\Db\Service\TagService;
-use VuFind\Db\Service\UserResourceService;
 use VuFind\Db\Service\UserResourceService;
 
 /**
@@ -93,7 +89,7 @@ class SocialstatsControllerTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()->onlyMethods(['getStatistics'])
             ->getMock();
         $tagService->expects($this->once())->method('getStatistics')
-            ->will($this->returnValue($mockStats));
+            ->will($this->returnValue($mockTagStats));
         $dbServices->set(TagService::class, $tagService);
 
         // Build the controller to test:
