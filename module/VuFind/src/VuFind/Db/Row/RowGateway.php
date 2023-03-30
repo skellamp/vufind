@@ -39,6 +39,13 @@ namespace VuFind\Db\Row;
 class RowGateway extends \Laminas\Db\RowGateway\RowGateway
 {
     /**
+     * Service plugin manager
+     *
+     * @var \VuFind\Db\Service\PluginManager
+     */
+    protected $pluginManager;
+
+    /**
      * Retrieve primary key information.
      *
      * @return array
@@ -46,5 +53,29 @@ class RowGateway extends \Laminas\Db\RowGateway\RowGateway
     public function getPrimaryKeyColumn()
     {
         return $this->primaryKeyColumn;
+    }
+
+    /**
+     * Set the service plugin manager.
+     *
+     * @param \VuFind\Db\Service\PluginManager $manager Plugin manager
+     *
+     * @return void
+     */
+    public function setDbServicePluginManager($manager)
+    {
+        $this->pluginManager = $manager;
+    }
+
+    /**
+     * Get a database service object.
+     *
+     * @param string $name Name of service to retrieve
+     *
+     * @return \VuFind\Db\Service\AbstractService
+     */
+    public function getDbService(string $name)
+    {
+        return $this->pluginManager->get($name);
     }
 }

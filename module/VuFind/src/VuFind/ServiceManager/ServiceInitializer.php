@@ -85,6 +85,10 @@ class ServiceInitializer implements InitializerInterface
             $instance->setDbTableManager(
                 $sm->get(\VuFind\Db\Table\PluginManager::class)
             );
+
+            $instance->setDbServiceManager(
+                $sm->get(\VuFind\Db\Service\PluginManager::class)
+            );
         }
         if ($instance instanceof \Laminas\Log\LoggerAwareInterface) {
             $instance->setLogger($sm->get(\VuFind\Log\Logger::class));

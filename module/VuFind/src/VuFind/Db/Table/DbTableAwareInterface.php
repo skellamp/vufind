@@ -54,4 +54,21 @@ interface DbTableAwareInterface
      * @return void
      */
     public function setDbTableManager(PluginManager $manager);
+
+    /**
+     * Get the plugin manager.  Throw an exception if it is missing.
+     *
+     * @throws \Exception
+     * @return \VuFind\Db\Service\PluginManager
+     */
+    public function getDbServiceManager();
+
+    /**
+     * Set the plugin manager.
+     *
+     * @param \VuFind\Db\Service\PluginManager $manager Plugin manager
+     *
+     * @return void
+     */
+    public function setDbServiceManager(PluginManager $manager);
 }

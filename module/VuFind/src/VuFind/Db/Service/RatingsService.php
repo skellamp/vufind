@@ -210,8 +210,9 @@ class RatingsService extends AbstractService
     public function deleteByUser(\VuFind\Db\Row\User $user): void
     {
         $dql = 'DELETE FROM ' . $this->getEntityClass(Ratings::class) . ' r '
-            . "WHERE r.id = :id";
-        $parameters['id'] = $user->id;
+            . "WHERE r.user = :user";
+        $userEntity = $this->userService->getUserById($user->id);
+        $parameters['user'] = $userEntity;
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         $query->execute();

@@ -725,7 +725,7 @@ class User extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterface,
             $comments->deleteByUser($this);
         }
         if ($removeRatings) {
-            $ratings = $this->getDbTable('Ratings');
+            $ratings = $this->getDbService(\VuFind\Db\Service\RatingsService::class);
             $ratings->deleteByUser($this);
         }
 

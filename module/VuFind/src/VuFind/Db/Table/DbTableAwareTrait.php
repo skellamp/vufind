@@ -46,6 +46,13 @@ trait DbTableAwareTrait
     protected $tableManager;
 
     /**
+     * Database service plugin manager
+     *
+     * @var \VuFind\Db\Service\PluginManager
+     */
+    protected $serviceManager;
+
+    /**
      * Get the table plugin manager. Throw an exception if it is missing.
      *
      * @throws \Exception
@@ -69,6 +76,32 @@ trait DbTableAwareTrait
     public function setDbTableManager(\VuFind\Db\Table\PluginManager $manager)
     {
         $this->tableManager = $manager;
+    }
+
+    /**
+     * Set the service plugin manager.
+     *
+     * @param \VuFind\Db\Service\PluginManager $manager Plugin manager
+     *
+     * @return void
+     */
+    public function setDbServiceManager(\VuFind\Db\Service\PluginManager $manager)
+    {
+        $this->serviceManager = $manager;
+    }
+
+    /**
+     * Get the service plugin manager. Throw an exception if it is missing.
+     *
+     * @throws \Exception
+     * @return \VuFind\Db\Service\PluginManager
+     */
+    public function getDbServiceManager()
+    {
+        if (null === $this->serviceManager) {
+            throw new \Exception('DB table manager missing.');
+        }
+        return $this->serviceManager;
     }
 
     /**
