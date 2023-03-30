@@ -61,7 +61,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
     protected $factories = [
         CommentsService::class => AbstractServiceFactory::class,
         FeedbackService::class => AbstractServiceFactory::class,
-        RatingsService::class => AbstractServiceFactory::class,
+        RatingsService::class => RatingsServiceFactory::class,
         ResourceService::class => AbstractServiceFactory::class,
         TagService::class => TagServiceFactory::class,
         UserService::class => AbstractServiceFactory::class,
