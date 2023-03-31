@@ -93,6 +93,9 @@ class RatingsService extends AbstractService
             ];
         }
 
+        $config = $this->entityManager->getConfiguration();
+        $config->addCustomNumericFunction('FLOOR', \VuFind\Db\Service\MysqlFloor::class);
+
         $dql = "SELECT COUNT(r.id) AS count, FLOOR(AVG(r.rating)) "
             . "FROM " . $this->getEntityClass(Ratings::class) . " r ";
 

@@ -31,7 +31,6 @@ use Interop\Container\ContainerInterface;
 use Interop\Container\Exception\ContainerException;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
-use Laminas\ServiceManager\Factory\FactoryInterface;
 
 /**
  * Database ratings service factory
@@ -42,7 +41,7 @@ use Laminas\ServiceManager\Factory\FactoryInterface;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-class RatingsServiceFactory implements FactoryInterface
+class RatingsServiceFactory extends AbstractServiceFactory
 {
     /**
      * Create an object
@@ -60,8 +59,12 @@ class RatingsServiceFactory implements FactoryInterface
      */
     public function __invoke(
         ContainerInterface $container,
-        $requestedName
+        $requestedName,
+        array $options = null
     ) {
+        if (!empty($options)) {
+            throw new \Exception('Unexpected options sent to factory!');
+        }
         $dbServiceManager = $container->get(\VuFind\Db\Service\PluginManager::class);
         return new $requestedName(
             $container->get('doctrine.entitymanager.orm_vufind'),
