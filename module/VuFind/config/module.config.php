@@ -585,6 +585,9 @@ $config = [
                 'connection' => 'orm_vufind',
                 'configuration' => 'orm_vufind',
             ],
+            'custom_numeric_functions' => [
+                'FLOOR' => \VuFind\Db\Extension\MysqlFloor::class,
+            ],
         ],
     ],
     'translator' => [],
