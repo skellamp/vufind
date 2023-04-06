@@ -89,7 +89,7 @@ class SocialstatsControllerTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()->onlyMethods(['getStatistics'])
             ->getMock();
         $tagService->expects($this->once())->method('getStatistics')
-            ->will($this->returnValue($mockStats));
+            ->will($this->returnValue($mockTagStats));
         $dbServices->set(TagService::class, $tagService);
 
         // Build the controller to test:
