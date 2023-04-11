@@ -86,6 +86,7 @@ class RatingsService extends AbstractService
     public function getForResource(string $id, string $source, ?int $userId): array
     {
         $resource = $this->resourceService->findResource($id, $source);
+        
         if (empty($resource)) {
             return [
                 'count' => 0,
@@ -93,16 +94,13 @@ class RatingsService extends AbstractService
             ];
         }
 
-        $config = $this->entityManager->getConfiguration();
-        $config->addCustomNumericFunction('FLOOR', \VuFind\Db\Service\MysqlFloor::class);
-
-        $dql = "SELECT COUNT(r.id) AS count, FLOOR(AVG(r.rating)) "
+        $dql = "SELECT COUNT(r.id) AS count, AVG(r.rating) AS rating "
             . "FROM " . $this->getEntityClass(Ratings::class) . " r ";
 
         $dqlWhere[] = "r.resource = :resource";
         $parameters['resource'] = $resource;
         if (null !== $userId) {
-            $dqlWhere[] = "f.user = :user";
+            $dqlWhere[] = "r.user = :user";
             $parameters['user'] = $this->userService->getUserById($userId);
         }
         $dql .= ' WHERE ' . implode(' AND ', $dqlWhere);
@@ -110,7 +108,7 @@ class RatingsService extends AbstractService
         $result = $query->getResult();
         return [
             'count' => $result->count,
-            'rating' => $result->rating ?? 0
+            'rating' => floor($result->rating) ?? 0
         ];
     }
 

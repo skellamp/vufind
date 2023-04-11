@@ -45,8 +45,6 @@ class ResourceService extends AbstractService
      *
      * @param string                            $id     Record ID to look up
      * @param string                            $source Source of record to look up
-     * @param bool                              $create If true, create the row if it
-     * does not yet exist.
      *
      * @return Resource|null Matching row if found, null
      * otherwise.
@@ -68,6 +66,8 @@ class ResourceService extends AbstractService
         $parameters['source'] = $source;
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
-        return current($query->getResult());
+        $result = $query->getResult();
+       
+        return current($result);
     }
 }
