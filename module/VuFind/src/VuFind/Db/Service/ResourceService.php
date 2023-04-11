@@ -43,8 +43,8 @@ class ResourceService extends AbstractService
     /**
      * Look up a row for the specified resource.
      *
-     * @param string                            $id     Record ID to look up
-     * @param string                            $source Source of record to look up
+     * @param string $id     Record ID to look up
+     * @param string $source Source of record to look up
      *
      * @return Resource|null Matching row if found, null
      * otherwise.
