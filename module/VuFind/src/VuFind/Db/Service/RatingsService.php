@@ -61,7 +61,8 @@ class RatingsService extends AbstractService
      *
      * @param EntityManager       $entityManager       Doctrine ORM entity manager
      * @param EntityPluginManager $entityPluginManager VuFind entity plugin manager
-     * @param bool                $caseSensitive       Are tags case sensitive?
+     * @param ResourceService     $rs                  Database resource service
+     * @param UserService         $us                  Database user service
      */
     public function __construct(
         EntityManager $entityManager,
@@ -86,7 +87,7 @@ class RatingsService extends AbstractService
     public function getForResource(string $id, string $source, ?int $userId): array
     {
         $resource = $this->resourceService->findResource($id, $source);
-        
+
         if (empty($resource)) {
             return [
                 'count' => 0,

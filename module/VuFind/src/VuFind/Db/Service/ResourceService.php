@@ -67,7 +67,7 @@ class ResourceService extends AbstractService
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         $result = $query->getResult();
-       
+
         return current($result);
     }
 }
