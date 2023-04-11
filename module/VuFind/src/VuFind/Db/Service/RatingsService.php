@@ -68,7 +68,7 @@ class RatingsService extends AbstractService
         EntityManager $entityManager,
         EntityPluginManager $entityPluginManager,
         \VuFind\Db\Service\ResourceService $rs,
-        \VuFind\Db\Service\UserService $us,
+        \VuFind\Db\Service\UserService $us
     ) {
         parent::__construct($entityManager, $entityPluginManager);
         $this->resourceService = $rs;
@@ -171,35 +171,6 @@ class RatingsService extends AbstractService
         }
         $result['rating'] = $groupCount ? floor($ratingTotal / $groupCount) : 0;
         return $result;
-    }
-
-    /**
-     * Delete a rating if the owner is logged in.  Returns true on success.
-     *
-     * @param int                 $id   ID of row to delete
-     * @param \VuFind\Db\Row\User $user Logged in user object
-     *
-     * @return bool
-     */
-    public function deleteIfOwnedByUser(int $id, \VuFind\Db\Row\User $user)
-    {
-        // User must have an ID:
-        if (!isset($user->id)) {
-            return false;
-        }
-        $userEntity = $this->userService->getUserById($user->id);
-
-        $row = $this->entityManager->find(
-            $this->getEntityClass(Ratings::class),
-            $id
-        );
-        if (!($row->getUser() == $userEntity)) {
-            return false;
-        }
-
-        // If we got this far, everything is okay:
-        $this->entityManager->remove($row);
-        return true;
     }
 
     /**
