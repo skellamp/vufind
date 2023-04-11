@@ -279,7 +279,7 @@ abstract class AbstractBase implements \VuFind\Db\Table\DbTableAwareInterface,
      */
     public function getRatingBreakdown(array $groups)
     {
-        return $ratingsService = $this->getDbServiceManager()
+        return $this->getDbServiceManager()
             ->get(\VuFind\Db\Service\RatingsService::class)
             ->getCountsForResource(
                 $this->getUniqueId(),

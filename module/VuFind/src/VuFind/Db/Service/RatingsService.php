@@ -93,7 +93,6 @@ class RatingsService extends AbstractService
                 'rating' => 0
             ];
         }
-
         $dql = "SELECT COUNT(r.id) AS count, AVG(r.rating) AS rating "
             . "FROM " . $this->getEntityClass(Ratings::class) . " r ";
 
@@ -105,10 +104,11 @@ class RatingsService extends AbstractService
         }
         $dql .= ' WHERE ' . implode(' AND ', $dqlWhere);
         $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
         $result = $query->getResult();
         return [
-            'count' => $result->count,
-            'rating' => floor($result->rating) ?? 0
+            'count' => $result[0]['count'],
+            'rating' => floor($result[0]['rating']) ?? 0
         ];
     }
 
@@ -140,7 +140,7 @@ class RatingsService extends AbstractService
         if (empty($resource)) {
             return $result;
         }
-        $dql = "SELECT COUNT(r.*) AS count, r.rating AS rating "
+        $dql = "SELECT COUNT(r.id) AS count, r.rating AS rating "
             . "FROM " . $this->getEntityClass(Ratings::class) . " r "
             . "WHERE r.resource = :resource "
             . "GROUP BY rating";
