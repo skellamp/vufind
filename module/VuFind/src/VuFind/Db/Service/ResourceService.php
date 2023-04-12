@@ -54,7 +54,7 @@ class ResourceService extends AbstractService
      */
     public function findResource(
         $id,
-        $source = DEFAULT_SEARCH_BACKEND,
+        $source = DEFAULT_SEARCH_BACKEND
     ) {
         if (empty($id)) {
             throw new \Exception('Resource ID cannot be empty');
