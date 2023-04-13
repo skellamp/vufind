@@ -34,7 +34,7 @@ use VuFind\Db\Entity\Ratings;
  *
  * @category VuFind
  * @package  Database
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @author   Sudharma Kellampalli <skellamp@villanova.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
@@ -154,11 +154,10 @@ class RatingsService extends AbstractService
      */
     public function deleteByUser($user): void
     {
+        var_dump("I am here");
         $dql = 'DELETE FROM ' . $this->getEntityClass(Ratings::class) . ' r '
             . "WHERE r.user = :user";
-        $userEntity = $this->getDbService(UserService::class)
-            ->getUserById($user);
-        $parameters['user'] = $userEntity;
+        $parameters['user'] = $user;
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         $query->execute();
