@@ -54,28 +54,4 @@ class RowGateway extends \Laminas\Db\RowGateway\RowGateway
     {
         return $this->primaryKeyColumn;
     }
-
-    /**
-     * Set the service plugin manager.
-     *
-     * @param \VuFind\Db\Service\PluginManager $manager Plugin manager
-     *
-     * @return void
-     */
-    public function setDbServicePluginManager($manager)
-    {
-        $this->pluginManager = $manager;
-    }
-
-    /**
-     * Get a database service object.
-     *
-     * @param string $name Name of service to retrieve
-     *
-     * @return \VuFind\Db\Service\AbstractService
-     */
-    public function getDbService(string $name)
-    {
-        return $this->pluginManager->get($name);
-    }
 }

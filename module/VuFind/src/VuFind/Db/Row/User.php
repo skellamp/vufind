@@ -65,9 +65,11 @@ use Laminas\Db\Sql\Select;
  * @property string  $last_language
  */
 class User extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterface,
-    \LmcRbacMvc\Identity\IdentityInterface
+    \LmcRbacMvc\Identity\IdentityInterface,
+    \VuFind\Db\Service\ServiceAwareInterface
 {
     use \VuFind\Db\Table\DbTableAwareTrait;
+    use \VuFind\Db\Service\ServiceAwareTrait;
 
     /**
      * Is encryption enabled?
@@ -726,7 +728,7 @@ class User extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterface,
         }
         if ($removeRatings) {
             $ratings = $this->getDbService(\VuFind\Db\Service\RatingsService::class);
-            $ratings->deleteByUser($this);
+            $ratings->deleteByUser($this->id);
         }
 
         // Remove the user itself:

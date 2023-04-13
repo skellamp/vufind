@@ -27,8 +27,6 @@
  */
 namespace VuFind\Db\Service;
 
-use Doctrine\ORM\EntityManager;
-use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 use VuFind\Db\Entity\Ratings;
 
 /**
@@ -41,39 +39,9 @@ use VuFind\Db\Entity\Ratings;
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
 class RatingsService extends AbstractService
+    implements \VuFind\Db\Service\ServiceAwareInterface
 {
-    /**
-     * User database service
-     *
-     * @var \VuFind\Db\Service\UserService
-     */
-    protected $userService;
-
-    /**
-     * Resource database service
-     *
-     * @var \VuFind\Db\Service\ResourceService
-     */
-    protected $resourceService;
-
-    /**
-     * Constructor
-     *
-     * @param EntityManager       $entityManager       Doctrine ORM entity manager
-     * @param EntityPluginManager $entityPluginManager VuFind entity plugin manager
-     * @param ResourceService     $rs                  Database resource service
-     * @param UserService         $us                  Database user service
-     */
-    public function __construct(
-        EntityManager $entityManager,
-        EntityPluginManager $entityPluginManager,
-        \VuFind\Db\Service\ResourceService $rs,
-        \VuFind\Db\Service\UserService $us
-    ) {
-        parent::__construct($entityManager, $entityPluginManager);
-        $this->resourceService = $rs;
-        $this->userService = $us;
-    }
+    use \VuFind\Db\Service\ServiceAwareTrait;
 
     /**
      * Get average rating and rating count associated with the specified resource.
@@ -86,7 +54,8 @@ class RatingsService extends AbstractService
      */
     public function getForResource(string $id, string $source, ?int $userId): array
     {
-        $resource = $this->resourceService->findResource($id, $source);
+        $resource = $this->getDbService(ResourceService::class)
+            ->findResource($id, $source);
 
         if (empty($resource)) {
             return [
@@ -101,7 +70,7 @@ class RatingsService extends AbstractService
         $parameters['resource'] = $resource;
         if (null !== $userId) {
             $dqlWhere[] = "r.user = :user";
-            $parameters['user'] = $this->userService->getUserById($userId);
+            $parameters['user'] = $userId;
         }
         $dql .= ' WHERE ' . implode(' AND ', $dqlWhere);
         $query = $this->entityManager->createQuery($dql);
@@ -137,7 +106,9 @@ class RatingsService extends AbstractService
             $result['groups'][$key] = 0;
         }
 
-        $resource = $this->resourceService->findResource($id, $source);
+        $resource = $this->getDbService(ResourceService::class)
+            ->findResource($id, $source);
+
         if (empty($resource)) {
             return $result;
         }
@@ -177,15 +148,16 @@ class RatingsService extends AbstractService
     /**
      * Deletes all ratings by a user.
      *
-     * @param \VuFind\Db\Row\User $user User object
+     * @param int $user User object
      *
      * @return void
      */
-    public function deleteByUser(\VuFind\Db\Row\User $user): void
+    public function deleteByUser($user): void
     {
         $dql = 'DELETE FROM ' . $this->getEntityClass(Ratings::class) . ' r '
             . "WHERE r.user = :user";
-        $userEntity = $this->userService->getUserById($user->id);
+        $userEntity = $this->getDbService(UserService::class)
+            ->getUserById($user);
         $parameters['user'] = $userEntity;
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);

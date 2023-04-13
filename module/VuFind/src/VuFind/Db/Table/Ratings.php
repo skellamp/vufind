@@ -1,10 +1,10 @@
 <?php
 /**
- * Marker interface for classes that depend on the \VuFind\Db\Table\PluginManager
+ * Table Definition for ratings
  *
  * PHP version 7
  *
- * Copyright (C) Villanova University 2010.
+ * Copyright (C) The National Library of Finland 2022.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -21,37 +21,42 @@
  *
  * @category VuFind
  * @package  Db_Table
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org Main Site
  */
 namespace VuFind\Db\Table;
 
+use Laminas\Db\Adapter\Adapter;
+use VuFind\Db\Row\RowGateway;
+
 /**
- * Marker interface for classes that depend on the \VuFind\Db\Table\PluginManager
+ * Table Definition for ratings
  *
  * @category VuFind
  * @package  Db_Table
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org Main Site
  */
-interface DbTableAwareInterface
+class Ratings extends Gateway
 {
     /**
-     * Get the plugin manager.  Throw an exception if it is missing.
+     * Constructor
      *
-     * @throws \Exception
-     * @return PluginManager
+     * @param Adapter       $adapter Database adapter
+     * @param PluginManager $tm      Table manager
+     * @param array         $cfg     Laminas configuration
+     * @param RowGateway    $rowObj  Row prototype object (null for default)
+     * @param string        $table   Name of database table to interface with
      */
-    public function getDbTableManager();
-
-    /**
-     * Set the plugin manager.
-     *
-     * @param PluginManager $manager Plugin manager
-     *
-     * @return void
-     */
-    public function setDbTableManager(PluginManager $manager);
+    public function __construct(
+        Adapter $adapter,
+        PluginManager $tm,
+        $cfg,
+        ?RowGateway $rowObj = null,
+        $table = 'ratings'
+    ) {
+        parent::__construct($adapter, $tm, $cfg, $rowObj, $table);
+    }
 }

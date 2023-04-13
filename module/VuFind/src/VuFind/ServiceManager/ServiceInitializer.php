@@ -85,7 +85,8 @@ class ServiceInitializer implements InitializerInterface
             $instance->setDbTableManager(
                 $sm->get(\VuFind\Db\Table\PluginManager::class)
             );
-
+        }
+        if ($instance instanceof \VuFind\Db\Service\ServiceAwareInterface) {
             $instance->setDbServiceManager(
                 $sm->get(\VuFind\Db\Service\PluginManager::class)
             );
