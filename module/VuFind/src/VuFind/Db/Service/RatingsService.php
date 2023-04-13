@@ -154,7 +154,6 @@ class RatingsService extends AbstractService
      */
     public function deleteByUser($user): void
     {
-        var_dump("I am here");
         $dql = 'DELETE FROM ' . $this->getEntityClass(Ratings::class) . ' r '
             . "WHERE r.user = :user";
         $parameters['user'] = $user;
