@@ -254,9 +254,9 @@ abstract class AbstractBase implements \VuFind\Db\Table\DbTableAwareInterface,
         // Cache data since comments list may ask for same information repeatedly:
         $cacheKey = $userId ?? '-';
         if (!isset($this->ratingCache[$cacheKey])) {
-            $ratingsService = $this->getDbServiceManager()
-                    ->get(\VuFind\Db\Service\RatingsService::class);
-
+            $ratingsService = $this->getDbService(
+                \VuFind\Db\Service\RatingsService::class
+            );
             $this->ratingCache[$cacheKey] = $ratingsService->getForResource(
                 $this->getUniqueId(),
                 $this->getSourceIdentifier(),
@@ -281,8 +281,9 @@ abstract class AbstractBase implements \VuFind\Db\Table\DbTableAwareInterface,
      */
     public function getRatingBreakdown(array $groups)
     {
-        return $this->getDbServiceManager()
-            ->get(\VuFind\Db\Service\RatingsService::class)
+        return $this->getDbService(
+            \VuFind\Db\Service\RatingsService::class
+        )
             ->getCountsForResource(
                 $this->getUniqueId(),
                 $this->getSourceIdentifier(),

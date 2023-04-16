@@ -148,7 +148,7 @@ class RatingsService extends AbstractService
     /**
      * Deletes all ratings by a user.
      *
-     * @param int $user User object
+     * @param int|\VuFind\Db\Entity\User $user User object or identifier
      *
      * @return void
      */

@@ -80,6 +80,6 @@ trait ServiceAwareTrait
      */
     public function getDbService(string $name)
     {
-        return $this->serviceManager->get($name);
+        return $this->getDbServiceManager()->get($name);
     }
 }

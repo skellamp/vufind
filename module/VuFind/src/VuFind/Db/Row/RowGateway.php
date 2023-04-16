@@ -39,13 +39,6 @@ namespace VuFind\Db\Row;
 class RowGateway extends \Laminas\Db\RowGateway\RowGateway
 {
     /**
-     * Service plugin manager
-     *
-     * @var \VuFind\Db\Service\PluginManager
-     */
-    protected $pluginManager;
-
-    /**
      * Retrieve primary key information.
      *
      * @return array
