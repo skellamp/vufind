@@ -70,7 +70,7 @@ trait LiveDatabaseTrait
         $dmo = new \DoctrineORMModule\Module();
         $dmoConfig = $dmo->getConfig();
         $vfConfig = include APPLICATION_PATH . '/module/VuFind/config/module.config.php';
-        return array_merge_recursive($dmConfig, $dmoConfig, $vfConfig);
+        return array_replace_recursive($dmConfig, $dmoConfig, $vfConfig);
     }
 
     /**
@@ -90,9 +90,20 @@ trait LiveDatabaseTrait
             'doctrine.connection.orm_vufind',
             \VuFind\Db\Connection::class
         );
-        $container->setAlias(
+        $connectionFactory = new \VuFind\Db\ConnectionFactory();
+        $container->set(
+            \VuFind\Db\Connection::class,
+            $connectionFactory($container, \VuFind\Db\Connection::class)
+        );
+        $config = $container->get('config');
+        $cacheFactory = new \DoctrineModule\Service\CacheFactory(('filesystem'));
+        $container->set(
+            \Doctrine\Common\Cache\FilesystemCache::class,
+            new \Doctrine\Common\Cache\FilesystemCache($config['doctrine']['cache']['filesystem']['directory'])
+        );
+        $container->set(
             'doctrine.cache.filesystem',
-            \Doctrine\Common\Cache\Cache::class
+            $cacheFactory($container, 'filesystem')
         );
         $driverFactory = new \DoctrineModule\Service\DriverFactory('orm_default');
         $container->set(
@@ -143,13 +154,13 @@ trait LiveDatabaseTrait
             $config = $this->getMergedConfig();
             $container = new \VuFindTest\Container\MockContainer($this);
             $container->set('config', $config);
-            $this->addDoctrineDependenciesToContainer($container);
             $configManager = new \VuFind\Config\PluginManager(
                 $container,
                 $config['vufind']['config_reader']
             );
             $container->set(\VuFind\Config\PluginManager::class, $configManager);
             $this->addPathResolverToContainer($container);
+            $this->addDoctrineDependenciesToContainer($container);
             $adapterFactory = new \VuFind\Db\AdapterFactory(
                 $configManager->get('config')
             );
