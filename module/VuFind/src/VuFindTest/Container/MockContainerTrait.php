@@ -168,16 +168,14 @@ trait MockContainerTrait
     /**
      * Add an alias.
      *
-     * @param string $alias     Alias of the service.
-     * @param string $target    Target service.
+     * @param string $alias  Alias of the service.
+     * @param string $target Target service.
      * 
      * @return object
-     */
+     */
     public function setAlias($alias, $target)
     {
-        if (!isset($this->mockAliases[$alias])) {
-            $this->mockAliases[$alias] = $target;
-        }
+        $this->mockAliases[$alias] = $target;
         return $this;
     }
 }

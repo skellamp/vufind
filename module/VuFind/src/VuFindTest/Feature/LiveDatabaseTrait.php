@@ -69,7 +69,8 @@ trait LiveDatabaseTrait
         $dmConfig = $dm->getConfig();
         $dmo = new \DoctrineORMModule\Module();
         $dmoConfig = $dmo->getConfig();
-        $vfConfig = include APPLICATION_PATH . '/module/VuFind/config/module.config.php';
+        $vfConfig
+            = include APPLICATION_PATH . '/module/VuFind/config/module.config.php';
         return array_replace_recursive($dmConfig, $dmoConfig, $vfConfig);
     }
 
@@ -99,7 +100,9 @@ trait LiveDatabaseTrait
         $cacheFactory = new \DoctrineModule\Service\CacheFactory(('filesystem'));
         $container->set(
             \Doctrine\Common\Cache\FilesystemCache::class,
-            new \Doctrine\Common\Cache\FilesystemCache($config['doctrine']['cache']['filesystem']['directory'])
+            new \Doctrine\Common\Cache\FilesystemCache(
+                $config['doctrine']['cache']['filesystem']['directory']
+            )
         );
         $container->set(
             'doctrine.cache.filesystem',
@@ -110,17 +113,20 @@ trait LiveDatabaseTrait
             'doctrine.driver.orm_default',
             $driverFactory($container, 'orm_default')
         );
-        $configFactory = new \DoctrineORMModule\Service\ConfigurationFactory('orm_vufind');
+        $configFactory
+            = new \DoctrineORMModule\Service\ConfigurationFactory('orm_vufind');
         $container->set(
             'doctrine.configuration.orm_vufind',
             $configFactory($container, 'orm_vufind')
         );
-        $eventManagerFactory = new \DoctrineModule\Service\EventManagerFactory('orm_default');
+        $eventManagerFactory
+            = new \DoctrineModule\Service\EventManagerFactory('orm_default');
         $container->set(
             'doctrine.eventmanager.orm_default',
             $eventManagerFactory($container, 'orm_default')
         );
-        $entityResolverFactory = new \DoctrineORMModule\Service\EntityResolverFactory('orm_default');
+        $entityResolverFactory
+            = new \DoctrineORMModule\Service\EntityResolverFactory('orm_default');
         $container->set(
             'doctrine.entity_resolver.orm_default',
             $entityResolverFactory($container, 'orm_default')
