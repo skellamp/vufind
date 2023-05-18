@@ -100,8 +100,9 @@ trait LiveDatabaseTrait
         $cacheFactory = new \DoctrineModule\Service\CacheFactory(('filesystem'));
         $container->set(
             \Doctrine\Common\Cache\FilesystemCache::class,
+            // Use a different directory name for tests to avoid permission issues:
             new \Doctrine\Common\Cache\FilesystemCache(
-                $config['doctrine']['cache']['filesystem']['directory']
+                $config['doctrine']['cache']['filesystem']['directory'] . '_testmode'
             )
         );
         $container->set(
