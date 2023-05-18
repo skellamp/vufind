@@ -168,9 +168,9 @@ trait MockContainerTrait
     /**
      * Add an alias.
      *
-     * @param string $alias  Alias of the service.
-     * @param string $target Target service.
-     * 
+     * @param string $alias  Alias of the service.
+     * @param string $target Target service.
+     *
      * @return object
      */
     public function setAlias($alias, $target)
