@@ -68,7 +68,9 @@ class DeleteRecordCommentFactory
         if (!empty($options)) {
             throw new \Exception('Unexpected options passed to factory.');
         }
-        $servicePluginManager = $container->get(\VuFind\Db\Service\PluginManager::class);
+        $servicePluginManager = $container->get(
+            \VuFind\Db\Service\PluginManager::class
+        );
         $capabilities = $container->get(\VuFind\Config\AccountCapabilities::class);
         return new $requestedName(
             $servicePluginManager->get(\VuFind\Db\Service\CommentsService::class),
