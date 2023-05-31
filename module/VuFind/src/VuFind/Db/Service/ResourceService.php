@@ -28,6 +28,7 @@
 namespace VuFind\Db\Service;
 
 use VuFind\Db\Entity\Resource;
+use VuFind\Exception\LoginRequired as LoginRequiredException;
 
 /**
  * Database service for resource.
