@@ -92,8 +92,12 @@ class ResourceService extends AbstractService
                 "Can't add comments without logging in."
             );
         }
-        $userVal = $this->getDbService(\VuFind\Db\Service\UserService::class)
-            ->getUserById($user);
+        if (is_int($user)) {
+            $userVal = $this->getDbService(\VuFind\Db\Service\UserService::class)
+                ->getUserById($user);
+        } else {
+            $userVal = $user;
+        }
         $commentsService = $this->getDbService(
             \VuFind\Db\Service\CommentsService::class
         );

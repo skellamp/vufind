@@ -111,7 +111,7 @@ class Comments implements EntityInterface
      *
      * @return int
      */
-    public function getId()
+    public function getId(): int
     {
         return $this->id;
     }
@@ -134,7 +134,7 @@ class Comments implements EntityInterface
      *
      * @return string
      */
-    public function getComment()
+    public function getComment(): string
     {
         return $this->comment;
     }
@@ -157,7 +157,7 @@ class Comments implements EntityInterface
      *
      * @return Datetime
      */
-    public function getCreated()
+    public function getCreated(): Datetime
     {
         return $this->created;
     }
@@ -165,7 +165,7 @@ class Comments implements EntityInterface
     /**
      * User setter.
      *
-     * @param User $user User that created comment
+     * @param null|User $user User that created comment
      *
      * @return Comments
      */
@@ -180,7 +180,7 @@ class Comments implements EntityInterface
      *
      * @return User
      */
-    public function getUser()
+    public function getUser(): User
     {
         return $this->user;
     }

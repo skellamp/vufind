@@ -89,7 +89,6 @@ class DeleteRecordComment extends AbstractBase implements TranslatorAwareInterfa
      */
     public function handleRequest(Params $params)
     {
-
         // Make sure comments are enabled:
         if (!$this->enabled) {
             return $this->formatResponse(

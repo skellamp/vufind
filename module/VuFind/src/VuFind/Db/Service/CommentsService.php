@@ -76,7 +76,7 @@ class CommentsService extends AbstractService
             . "WHERE c.resource = :resource "
             . "ORDER BY c.created";
 
-        $parameters['resource'] = $resource;
+        $parameters = compact('resource');
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         $result = $query->getResult();
@@ -96,20 +96,21 @@ class CommentsService extends AbstractService
         if (null === $user) {
             return false;
         }
-
         $comment = $this->entityManager->find(
             $this->getEntityClass(\VuFind\Db\Entity\Comments::class),
             $id
         );
-
-        if ($comment->getUser()->getId() != $user) {
+        $userEntity = $comment->getUser();
+        if (is_int($user) && $userEntity->getId() != $user) {
+            return false;
+        }
+        if (is_object($user) && $userEntity != $user) {
             return false;
         }
 
         $del = 'DELETE FROM ' . $this->getEntityClass(Comments::class) . ' c '
         . "WHERE c.id = :id AND c.user = :user";
-        $parameters['id'] = $id;
-        $parameters['user'] = $user;
+        $parameters = compact('id', 'user');
         $query = $this->entityManager->createQuery($del);
         $query->setParameters($parameters);
         $query->execute();
@@ -127,7 +128,7 @@ class CommentsService extends AbstractService
     {
         $dql = 'DELETE FROM ' . $this->getEntityClass(Comments::class) . ' c '
         . "WHERE c.user = :user";
-        $parameters['user'] = $user;
+        $parameters = compact('user');
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         $query->execute();
