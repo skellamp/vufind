@@ -100,11 +100,10 @@ class CommentsService extends AbstractService
             $this->getEntityClass(\VuFind\Db\Entity\Comments::class),
             $id
         );
-        $userEntity = $comment->getUser();
-        if (is_int($user) && $userEntity->getId() != $user) {
-            return false;
-        }
-        if (is_object($user) && $userEntity != $user) {
+
+        $commentOwnerId = $comment->getUser()->getId();
+        $userId = is_int($user) ? $user : $user->getId();
+        if ($userId !== $commentOwnerId) {
             return false;
         }
 

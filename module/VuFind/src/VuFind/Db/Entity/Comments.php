@@ -165,7 +165,7 @@ class Comments implements EntityInterface
     /**
      * User setter.
      *
-     * @param null|User $user User that created comment
+     * @param ?User $user User that created comment
      *
      * @return Comments
      */
