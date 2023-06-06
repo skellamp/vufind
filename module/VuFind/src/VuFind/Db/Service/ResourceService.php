@@ -101,7 +101,8 @@ class ResourceService extends AbstractService
         $commentsService = $this->getDbService(
             \VuFind\Db\Service\CommentsService::class
         );
-        $resourceVal = $this->getResourceById($resource);
+        $resourceVal = is_int($resource) ? $this->getResourceById($resource)
+            : $resource;
         $now = new \DateTime();
         $data = $commentsService->createEntity()
             ->setUser($userVal)
@@ -112,7 +113,6 @@ class ResourceService extends AbstractService
         try {
             $commentsService->persistEntity($data);
         } catch (\Exception $e) {
-            throw $e;
             $this->logError('Could not save comment: ' . $e->getMessage());
             return false;
         }

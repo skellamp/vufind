@@ -73,8 +73,11 @@ class DeleteRecordComment extends AbstractBase implements TranslatorAwareInterfa
      * @param User|bool       $user            Logged in user (or false)
      * @param bool            $enabled         Are comments enabled?
      */
-    public function __construct($commentsService, $user, $enabled = true)
-    {
+    public function __construct(
+        CommentsService $commentsService,
+        $user,
+        $enabled = true
+    ) {
         $this->commentsService = $commentsService;
         $this->user = $user;
         $this->enabled = $enabled;
