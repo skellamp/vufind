@@ -27,8 +27,10 @@
  */
 namespace VuFind\Db\Service;
 
+use Laminas\Log\LoggerAwareInterface;
 use VuFind\Db\Entity\Resource;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
+use VuFind\Log\LoggerAwareTrait;
 
 /**
  * Database service for resource.
@@ -40,9 +42,10 @@ use VuFind\Exception\LoginRequired as LoginRequiredException;
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
 class ResourceService extends AbstractService
-    implements \VuFind\Db\Service\ServiceAwareInterface
+    implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
 {
     use \VuFind\Db\Service\ServiceAwareTrait;
+    use LoggerAwareTrait;
 
     /**
      * Look up a row for the specified resource.
