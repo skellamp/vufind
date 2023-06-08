@@ -55,7 +55,7 @@ class RatingsService extends AbstractService
     public function getForResource(string $id, string $source, ?int $userId): array
     {
         $resource = $this->getDbService(ResourceService::class)
-            ->findResource($id, $source);
+            ->findResource($id, $source, false);
 
         if (empty($resource)) {
             return [
@@ -107,7 +107,7 @@ class RatingsService extends AbstractService
         }
 
         $resource = $this->getDbService(ResourceService::class)
-            ->findResource($id, $source);
+            ->findResource($id, $source, false);
 
         if (empty($resource)) {
             return $result;

@@ -65,7 +65,7 @@ class CommentsService extends AbstractService
     public function getForResource(string $id, $source = DEFAULT_SEARCH_BACKEND)
     {
         $resource = $this->getDbService(\VuFind\Db\Service\ResourceService::class)
-            ->findResource($id, $source);
+            ->findResource($id, $source, false);
 
         if (empty($resource)) {
             return [];

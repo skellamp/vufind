@@ -184,11 +184,11 @@ class CommentRecord extends AbstractBase implements TranslatorAwareInterface
             );
         }
 
-        $resource = $this->table->findResource($id, $source);
+        $resource = $this->resourceService->findResource($id, $source);
         $commentId = $this->resourceService->addComment(
             $comment,
             $this->user->id,
-            $resource->id
+            $resource
         );
 
         $rating = $params->fromPost('rating', '');
