@@ -30,6 +30,7 @@ namespace VuFind\Db\Service;
 use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerAwareInterface;
 use VuFind\Date\Converter as DateConverter;
+use VuFind\Date\DateException;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 use VuFind\Db\Entity\Resource;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
