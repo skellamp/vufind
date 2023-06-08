@@ -208,8 +208,11 @@ class ResourceService extends AbstractService
      *
      * @return \VuFind\Db\Entity\Resource
      */
-    public function assignMetadata($driver, \VuFind\Date\Converter $converter, $resource)
-    {
+    public function assignMetadata(
+        $driver,
+        \VuFind\Date\Converter $converter,
+        $resource
+    ) {
         // Grab title -- we have to have something in this field!
         $title = mb_substr(
             $driver->tryMethod('getSortTitle'),
