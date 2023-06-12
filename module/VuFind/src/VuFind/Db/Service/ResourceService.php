@@ -123,15 +123,13 @@ class ResourceService extends AbstractService
                 ->setSource($source);
 
             // Load record if it was not provided:
-            if (null === $driver) {
-                $driver = $this->recordLoader->load($id, $source);
-            }
+            $driver ??= $this->recordLoader->load($id, $source);
             // Load metadata into the database for sorting/failback purposes:
             $this->assignMetadata($driver, $this->dateConverter, $resource);
             try {
                 $this->persistEntity($resource);
             } catch (\Exception $e) {
-                $this->logError('Could not save comment: ' . $e->getMessage());
+                $this->logError('Could not save resource: ' . $e->getMessage());
                 return false;
             }
             return $resource;
@@ -215,19 +213,17 @@ class ResourceService extends AbstractService
         $resource
     ) {
         // Grab title -- we have to have something in this field!
+        $sortTitle = $driver->tryMethod('getSortTitle');
         $title = mb_substr(
-            $driver->tryMethod('getSortTitle'),
+            !empty($sortTitle) ? $sortTitle : $driver->getBreadcrumb(),
             0,
             255,
-            "UTF-8"
+            'UTF-8'
         );
-        if (empty($title)) {
-            $title = $driver->getBreadcrumb();
-        }
         $resource->setTitle($title);
         // Try to find an author; if not available, just leave the default null:
         $author = mb_substr(
-            $driver->tryMethod('getPrimaryAuthor'),
+            $driver->tryMethod('getPrimaryAuthor') ?? '',
             0,
             255,
             "UTF-8"
@@ -238,7 +234,7 @@ class ResourceService extends AbstractService
 
         // Try to find a year; if not available, just leave the default null:
         $dates = $driver->tryMethod('getPublicationDates');
-        if (isset($dates[0]) && strlen($dates[0]) > 4) {
+        if (strlen($dates[0] ?? '') > 4) {
             try {
                 $year = $converter->convertFromDisplayDate('Y', $dates[0]);
             } catch (DateException $e) {

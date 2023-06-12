@@ -133,7 +133,7 @@ class Resource implements EntityInterface
     }
 
     /**
-     * RecordId setter
+     * Record Id setter
      *
      * @param string $recordId recordId
      *
@@ -187,7 +187,7 @@ class Resource implements EntityInterface
     /**
      * Source setter
      *
-     * @param string $source Source.
+     * @param string $source Source (a search backend ID).
      *
      * @return Resource
      */
@@ -198,7 +198,7 @@ class Resource implements EntityInterface
     }
 
     /**
-     * ExtraMetadata setter
+     * Extra Metadata setter
      *
      * @param ?string $extraMetadata ExtraMetadata.
      *

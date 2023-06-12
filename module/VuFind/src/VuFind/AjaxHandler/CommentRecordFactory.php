@@ -68,14 +68,12 @@ class CommentRecordFactory
         if (!empty($options)) {
             throw new \Exception('Unexpected options passed to factory.');
         }
-        $tablePluginManager = $container->get(\VuFind\Db\Table\PluginManager::class);
         $servicePluginManager = $container->get(
             \VuFind\Db\Service\PluginManager::class
         );
         $controllerPluginManager = $container->get('ControllerPluginManager');
         $capabilities = $container->get(\VuFind\Config\AccountCapabilities::class);
         return new $requestedName(
-            $tablePluginManager->get(\VuFind\Db\Table\Resource::class),
             $servicePluginManager->get(\VuFind\Db\Service\ResourceService::class),
             $controllerPluginManager
                 ->get(\VuFind\Controller\Plugin\Captcha::class),
