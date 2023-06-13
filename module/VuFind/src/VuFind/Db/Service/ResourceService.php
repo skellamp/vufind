@@ -47,7 +47,7 @@ use VuFind\Record\Loader;
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
 class ResourceService extends AbstractService
-    implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
+implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
 {
     use \VuFind\Db\Service\ServiceAwareTrait;
     use LoggerAwareTrait;
