@@ -4,7 +4,7 @@
  *
  * PHP version 7
  *
- * Copyright (C) Villanova University 2010.
+ * Copyright (C) Villanova University 2023.
  * Copyright (C) The National Library of Finland 2016.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,6 +35,7 @@ use Exception;
 use Laminas\Crypt\BlockCipher;
 use Laminas\Crypt\Symmetric\Openssl;
 use Laminas\Db\Adapter\Adapter;
+use Laminas\Log\LoggerAwareInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Laminas\Session\Container;
@@ -48,6 +49,7 @@ use VuFind\Crypt\Base62;
 use VuFind\Date\Converter;
 use VuFind\Db\AdapterFactory;
 use VuFind\Exception\RecordMissing as RecordMissingException;
+use VuFind\Log\LoggerAwareTrait;
 use VuFind\Search\Results\PluginManager as ResultsManager;
 
 /**
@@ -61,9 +63,11 @@ use VuFind\Search\Results\PluginManager as ResultsManager;
  * @link     https://vufind.org Main Site
  */
 class UpgradeController extends AbstractBase
+    implements LoggerAwareInterface
 {
     use Feature\ConfigPathTrait;
     use Feature\SecureDatabaseTrait;
+    use LoggerAwareTrait;
 
     /**
      * Cookie container
@@ -718,8 +722,11 @@ class UpgradeController extends AbstractBase
         set_time_limit(0);
 
         // Check for problems:
-        $table = $this->getTable('Resource');
-        $problems = $table->findMissingMetadata();
+        $resourceService = $this->getDbService(
+            \VuFind\Db\Service\ResourceService::class
+        );
+
+        $problems = $resourceService->findMissingMetadata();
 
         // No problems?  We're done here!
         if (count($problems) == 0) {
@@ -733,13 +740,16 @@ class UpgradeController extends AbstractBase
             foreach ($problems as $problem) {
                 try {
                     $driver = $this->getRecordLoader()
-                        ->load($problem->record_id, $problem->source);
-                    $problem->assignMetadata($driver, $converter)->save();
+                        ->load($problem->getRecordId(), $problem->getSource());
+                    $resourceService->assignMetadata($driver, $converter, $problem);
+                    $resourceService->persistEntity($problem);
                 } catch (RecordMissingException $e) {
                     $this->session->warnings->append(
                         "Unable to load metadata for record "
                         . "{$problem->source}:{$problem->record_id}"
                     );
+                } catch (\Exception $e) {
+                    $this->logError('Could not save resource: ' . $e->getMessage());
                 }
             }
             $this->cookie->metadataOkay = true;
