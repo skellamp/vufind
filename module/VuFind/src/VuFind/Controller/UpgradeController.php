@@ -63,7 +63,7 @@ use VuFind\Search\Results\PluginManager as ResultsManager;
  * @link     https://vufind.org Main Site
  */
 class UpgradeController extends AbstractBase
-    implements LoggerAwareInterface
+implements LoggerAwareInterface
 {
     use Feature\ConfigPathTrait;
     use Feature\SecureDatabaseTrait;
