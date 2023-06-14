@@ -28,13 +28,18 @@
 namespace VuFind\Db\Service;
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerAwareInterface;
+use VuFind\Date\Converter as DateConverter;
+use VuFind\Date\DateException;
+use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 use VuFind\Date\Converter as DateConverter;
 use VuFind\Date\DateException;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 use VuFind\Db\Entity\Resource;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
 use VuFind\Log\LoggerAwareTrait;
+use VuFind\Record\Loader;
 use VuFind\Record\Loader;
 
 /**
@@ -86,6 +91,39 @@ implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
     }
 
     /**
+     * Record loader
+     *
+     * @var Loader
+     */
+    protected $recordLoader;
+
+    /**
+     * Date converter
+     *
+     * @var DateConverter
+     */
+    protected $dateConverter;
+
+    /**
+     * Constructor
+     *
+     * @param EntityManager       $entityManager       Doctrine ORM entity manager
+     * @param EntityPluginManager $entityPluginManager VuFind entity plugin manager
+     * @param Loader              $loader              Record loader
+     * @param DateConverter       $converter           Date converter
+     */
+    public function __construct(
+        EntityManager $entityManager,
+        EntityPluginManager $entityPluginManager,
+        Loader $loader,
+        DateConverter $converter
+    ) {
+        parent::__construct($entityManager, $entityPluginManager);
+        $this->recordLoader = $loader;
+        $this->dateConverter = $converter;
+    }
+
+    /**
      * Look up a row for the specified resource.
      *
      * @param string                            $id     Record ID to look up
@@ -95,12 +133,23 @@ implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
      * @param \VuFind\RecordDriver\AbstractBase $driver A record driver for the
      * resource being created (optional -- improves efficiency if provided, but will
      * be auto-loaded as needed if left null).
+     * @param string                            $id     Record ID to look up
+     * @param string                            $source Source of record to look up
+     * @param bool                              $create If true, create the row if
+     * it does not yet exist.
+     * @param \VuFind\RecordDriver\AbstractBase $driver A record driver for the
+     * resource being created (optional -- improves efficiency if provided, but will
+     * be auto-loaded as needed if left null).
      *
+     * @return Resource|null Matching row if found or created, null
      * @return Resource|null Matching row if found or created, null
      * otherwise.
      */
     public function findResource(
         $id,
+        $source = DEFAULT_SEARCH_BACKEND,
+        $create = true,
+        $driver = null
         $source = DEFAULT_SEARCH_BACKEND,
         $create = true,
         $driver = null
@@ -117,6 +166,23 @@ implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
         $query->setParameters($parameters);
         $result = $query->getResult();
 
+        if (empty($result) && $create) {
+            $resource = $this->createEntity()
+                ->setRecordId($id)
+                ->setSource($source);
+
+            // Load record if it was not provided:
+            $driver ??= $this->recordLoader->load($id, $source);
+            // Load metadata into the database for sorting/failback purposes:
+            $this->assignMetadata($driver, $this->dateConverter, $resource);
+            try {
+                $this->persistEntity($resource);
+            } catch (\Exception $e) {
+                $this->logError('Could not save resource: ' . $e->getMessage());
+                return false;
+            }
+            return $resource;
+        }
         if (empty($result) && $create) {
             $resource = $this->createEntity()
                 ->setRecordId($id)
@@ -264,7 +330,6 @@ implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
         $class = $this->getEntityClass(Resource::class);
         return new $class;
     }
-<<<<<<< HEAD
 
     /**
      * Get a set of records that do not have metadata stored in the resource
@@ -284,6 +349,4 @@ implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
         $result = $query->getResult();
         return $result;
     }
-=======
->>>>>>> 7eeefdf20ceb7d110caefbd0caca04e98dfdbc30
 }
