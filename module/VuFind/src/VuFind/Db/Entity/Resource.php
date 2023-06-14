@@ -146,6 +146,7 @@ class Resource implements EntityInterface
     }
 
     /**
+<<<<<<< HEAD
      * Record Id getter
      *
      * @return string
@@ -156,6 +157,8 @@ class Resource implements EntityInterface
     }
 
     /**
+=======
+>>>>>>> 7eeefdf20ceb7d110caefbd0caca04e98dfdbc30
      * Title setter
      *
      * @param string $title Title of the record.
@@ -208,6 +211,7 @@ class Resource implements EntityInterface
     }
 
     /**
+<<<<<<< HEAD
      * Source getter
      *
      * @return string
@@ -218,6 +222,8 @@ class Resource implements EntityInterface
     }
 
     /**
+=======
+>>>>>>> 7eeefdf20ceb7d110caefbd0caca04e98dfdbc30
      * Extra Metadata setter
      *
      * @param ?string $extraMetadata ExtraMetadata.

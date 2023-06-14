@@ -264,6 +264,7 @@ implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
         $class = $this->getEntityClass(Resource::class);
         return new $class;
     }
+<<<<<<< HEAD
 
     /**
      * Get a set of records that do not have metadata stored in the resource
@@ -283,4 +284,6 @@ implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
         $result = $query->getResult();
         return $result;
     }
+=======
+>>>>>>> 7eeefdf20ceb7d110caefbd0caca04e98dfdbc30
 }
