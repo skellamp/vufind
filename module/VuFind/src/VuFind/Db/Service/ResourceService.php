@@ -275,11 +275,9 @@ implements \VuFind\Db\Service\ServiceAwareInterface, LoggerAwareInterface
     {
         $dql = "SELECT r "
             . "FROM " . $this->getEntityClass(Resource::class) . " r "
-            . "WHERE r.title = :title OR r.author IS NULL OR r.year IS NULL";
-        $title = '';
-        $parameters = compact('title');
+            . "WHERE r.title = '' OR r.author IS NULL OR r.year IS NULL";
+
         $query = $this->entityManager->createQuery($dql);
-        $query->setParameters($parameters);
         $result = $query->getResult();
         return $result;
     }

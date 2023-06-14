@@ -35,7 +35,6 @@ use Exception;
 use Laminas\Crypt\BlockCipher;
 use Laminas\Crypt\Symmetric\Openssl;
 use Laminas\Db\Adapter\Adapter;
-use Laminas\Log\LoggerAwareInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Laminas\Session\Container;
@@ -49,7 +48,6 @@ use VuFind\Crypt\Base62;
 use VuFind\Date\Converter;
 use VuFind\Db\AdapterFactory;
 use VuFind\Exception\RecordMissing as RecordMissingException;
-use VuFind\Log\LoggerAwareTrait;
 use VuFind\Search\Results\PluginManager as ResultsManager;
 
 /**
@@ -63,11 +61,9 @@ use VuFind\Search\Results\PluginManager as ResultsManager;
  * @link     https://vufind.org Main Site
  */
 class UpgradeController extends AbstractBase
-implements LoggerAwareInterface
 {
     use Feature\ConfigPathTrait;
     use Feature\SecureDatabaseTrait;
-    use LoggerAwareTrait;
 
     /**
      * Cookie container
@@ -738,18 +734,23 @@ implements LoggerAwareInterface
         if ($this->formWasSubmitted('submit')) {
             $converter = $this->serviceLocator->get(Converter::class);
             foreach ($problems as $problem) {
+                $recordId = $problem->getRecordId();
+                $source = $problem->getSource();
                 try {
                     $driver = $this->getRecordLoader()
-                        ->load($problem->getRecordId(), $problem->getSource());
+                        ->load($recordId, $source);
                     $resourceService->assignMetadata($driver, $converter, $problem);
                     $resourceService->persistEntity($problem);
                 } catch (RecordMissingException $e) {
                     $this->session->warnings->append(
                         "Unable to load metadata for record "
-                        . "{$problem->source}:{$problem->record_id}"
+                        . "{$source}:{$recordId}"
                     );
                 } catch (\Exception $e) {
-                    $this->logError('Could not save resource: ' . $e->getMessage());
+                    $this->session->warnings->append(
+                        "Problem saving metadata updates for record "
+                        . "{$source}:{$recordId}"
+                    );
                 }
             }
             $this->cookie->metadataOkay = true;

@@ -27,6 +27,7 @@
  */
 namespace VuFind\Db\Row;
 
+use VuFind\Date\DateException;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
 
 /**
@@ -175,5 +176,60 @@ class Resource extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterf
         $row->created = date('Y-m-d H:i:s');
         $row->save();
         return $row->id;
+    }
+
+    /**
+     * Use a record driver to assign metadata to the current row.  Return the
+     * current object to allow fluent interface.
+     *
+     * @param \VuFind\RecordDriver\AbstractBase $driver    The record driver
+     * @param \VuFind\Date\Converter            $converter Date converter
+     *
+     * @return \VuFind\Db\Row\Resource
+     */
+    public function assignMetadata($driver, \VuFind\Date\Converter $converter)
+    {
+        // Grab title -- we have to have something in this field!
+        $this->title = mb_substr(
+            $driver->tryMethod('getSortTitle'),
+            0,
+            255,
+            "UTF-8"
+        );
+        if (empty($this->title)) {
+            $this->title = $driver->getBreadcrumb();
+        }
+
+        // Try to find an author; if not available, just leave the default null:
+        $author = mb_substr(
+            $driver->tryMethod('getPrimaryAuthor'),
+            0,
+            255,
+            "UTF-8"
+        );
+        if (!empty($author)) {
+            $this->author = $author;
+        }
+
+        // Try to find a year; if not available, just leave the default null:
+        $dates = $driver->tryMethod('getPublicationDates');
+        if (isset($dates[0]) && strlen($dates[0]) > 4) {
+            try {
+                $year = $converter->convertFromDisplayDate('Y', $dates[0]);
+            } catch (DateException $e) {
+                // If conversion fails, don't store a date:
+                $year = '';
+            }
+        } else {
+            $year = $dates[0] ?? '';
+        }
+        if (!empty($year)) {
+            $this->year = intval($year);
+        }
+
+        if ($extra = $driver->tryMethod('getExtraResourceMetadata')) {
+            $this->extra_metadata = json_encode($extra);
+        }
+        return $this;
     }
 }
