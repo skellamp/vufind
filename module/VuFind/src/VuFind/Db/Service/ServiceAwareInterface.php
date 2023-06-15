@@ -1,8 +1,9 @@
 <?php
+
 /**
  * Marker interface for classes that depend on the \VuFind\Db\Service\PluginManager
  *
- * PHP version 7
+ * PHP version 8
  *
  * Copyright (C) Villanova University 2023.
  *
@@ -25,6 +26,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org Main Site
  */
+
 namespace VuFind\Db\Service;
 
 /**

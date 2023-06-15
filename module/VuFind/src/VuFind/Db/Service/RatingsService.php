@@ -1,8 +1,9 @@
 <?php
+
 /**
  * Database service for Ratings.
  *
- * PHP version 7
+ * PHP version 8
  *
  * Copyright (C) Villanova University 2023.
  *
@@ -25,6 +26,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
+
 namespace VuFind\Db\Service;
 
 use VuFind\Db\Entity\Ratings;
@@ -38,8 +40,7 @@ use VuFind\Db\Entity\Ratings;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-class RatingsService extends AbstractService
-implements \VuFind\Db\Service\ServiceAwareInterface
+class RatingsService extends AbstractService implements \VuFind\Db\Service\ServiceAwareInterface
 {
     use \VuFind\Db\Service\ServiceAwareTrait;
 
@@ -60,7 +61,7 @@ implements \VuFind\Db\Service\ServiceAwareInterface
         if (empty($resource)) {
             return [
                 'count' => 0,
-                'rating' => 0
+                'rating' => 0,
             ];
         }
         $dql = "SELECT COUNT(r.id) AS count, AVG(r.rating) AS rating "
@@ -78,7 +79,7 @@ implements \VuFind\Db\Service\ServiceAwareInterface
         $result = $query->getResult();
         return [
             'count' => $result[0]['count'],
-            'rating' => floor($result[0]['rating']) ?? 0
+            'rating' => floor($result[0]['rating']) ?? 0,
         ];
     }
 
@@ -132,7 +133,8 @@ implements \VuFind\Db\Service\ServiceAwareInterface
             ++$groupCount;
             if ($groups) {
                 foreach ($groups as $key => $range) {
-                    if ($rating['rating'] >= $range[0]
+                    if (
+                        $rating['rating'] >= $range[0]
                         && $rating['rating'] <= $range[1]
                     ) {
                         $result['groups'][$key] = ($result['groups'][$key] ?? 0)
