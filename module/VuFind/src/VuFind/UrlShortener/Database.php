@@ -4,7 +4,7 @@
  *
  * PHP version 7
  *
- * Copyright (C) Villanova University 2019.
+ * Copyright (C) Villanova University 2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -27,8 +27,13 @@
  */
 namespace VuFind\UrlShortener;
 
+use Doctrine\ORM\EntityManager;
 use Exception;
-use VuFind\Db\Table\Shortlinks as ShortlinksTable;
+use DateTime;
+use Laminas\Log\LoggerAwareInterface;
+use VuFind\Db\Entity\PluginManager as EntityPluginManager;
+use VuFind\Log\LoggerAwareTrait;
+use VuFind\Db\Entity\Shortlinks;
 
 /**
  * Local database-driven URL shortener.
@@ -40,8 +45,10 @@ use VuFind\Db\Table\Shortlinks as ShortlinksTable;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
-class Database implements UrlShortenerInterface
+class Database implements UrlShortenerInterface, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     /**
      * Hash algorithm to use
      *
@@ -57,11 +64,18 @@ class Database implements UrlShortenerInterface
     protected $baseUrl;
 
     /**
-     * Table containing shortlinks
+     * Doctrine ORM entity manager
      *
-     * @var ShortlinksTable
+     * @var EntityManager
      */
-    protected $table;
+    protected $entityManager;
+
+    /**
+     * VuFind entity plugin manager
+     *
+     * @var EntityPluginManager
+     */
+    protected $entityPluginManager;
 
     /**
      * HMacKey from config
@@ -91,19 +105,22 @@ class Database implements UrlShortenerInterface
     /**
      * Constructor
      *
-     * @param string          $baseUrl       Base URL of current VuFind site
-     * @param ShortlinksTable $table         Shortlinks database table
-     * @param string          $salt          HMacKey from config
-     * @param string          $hashAlgorithm Hash algorithm to use
+     * @param string              $baseUrl       Base URL of current VuFind site
+     * @param EntityManager       $entityManager Doctrine ORM entity manager
+     * @param EntityPluginManager $pluginManager VuFind entity plugin manager
+     * @param string              $salt          HMacKey from config
+     * @param string              $hashAlgorithm Hash algorithm to use
      */
     public function __construct(
         string $baseUrl,
-        ShortlinksTable $table,
+        EntityManager $entityManager,
+        EntityPluginManager $pluginManager,
         string $salt,
         string $hashAlgorithm = 'md5'
     ) {
         $this->baseUrl = $baseUrl;
-        $this->table = $table;
+        $this->entityManager = $entityManager;
+        $this->entityPluginManager = $pluginManager;
         $this->salt = $salt;
         $this->hashAlgorithm = $hashAlgorithm;
     }
@@ -118,13 +135,23 @@ class Database implements UrlShortenerInterface
      */
     protected function getBase62Hash(string $path): string
     {
-        $this->table->insert(['path' => $path]);
-        $id = $this->table->getLastInsertValue();
-        $row = $this->table->select(['id' => $id])->current();
-        $b62 = new \VuFind\Crypt\Base62();
-        $row->hash = $b62->encode($id);
-        $row->save();
-        return $row->hash;
+        $shortlink = $this->entityPluginManager->get(Shortlinks::class);
+        $now = new \DateTime();
+        $shortlink->setPath($path)
+            ->setCreated($now);
+        try {
+            $this->entityManager->persist($shortlink);
+            $this->entityManager->flush();
+            $id = $shortlink->getId();
+            $b62 = new \VuFind\Crypt\Base62();
+            $shortlink->setHash($b62->encode($id));
+            $this->entityManager->persist($shortlink);
+            $this->entityManager->flush();
+        } catch (\Exception $e) {
+            $this->logError('Could not save shortlink: ' . $e->getMessage());
+            throw $e;
+        }
+        return $shortlink->getHash();
     }
 
     /**
@@ -148,17 +175,40 @@ class Database implements UrlShortenerInterface
             );
         }
         $shorthash = str_pad(substr($hash, 0, $length), $length, '_');
-        $results = $this->table->select(['hash' => $shorthash]);
+
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->select('s')
+            ->from(Shortlinks::class, 's')
+            ->where('s.hash = :hash')
+            ->setParameter('hash', $shorthash);
+        $query = $queryBuilder->getQuery();
+        $results = $query->getResult();
 
         // Brand new hash? Create row and return:
-        if ($results->count() == 0) {
-            $this->table->insert(['path' => $path, 'hash' => $shorthash]);
+        if (count($results) == 0) {
+            $shortlink = $this->entityPluginManager->get(Shortlinks::class);
+            $now = new \DateTime();
+            // Generate short hash within a transaction to avoid odd timing-related
+            // problems:
+            $this->entityManager->getConnection()->beginTransaction();
+            $shortlink->setHash($shorthash)
+                ->setPath($path)
+                ->setCreated($now);
+            try {
+                $this->entityManager->persist($shortlink);
+                $this->entityManager->flush();
+                $this->entityManager->getConnection()->commit();
+            } catch (\Exception $e) {
+                $this->logError('Could not save shortlink: ' . $e->getMessage());
+                $this->entityManager->getConnection()->rollBack();
+                throw $e;
+            }
             return $shorthash;
         }
 
         // If we got this far, the hash already exists; let's check if it matches
         // the path...
-        if ($results->current()['path'] === $path) {
+        if (current($results)->getPath() === $path) {
             return $shorthash;
         }
 
@@ -178,13 +228,9 @@ class Database implements UrlShortenerInterface
     protected function getGenericHash(string $path): string
     {
         $hash = hash($this->hashAlgorithm, $path . $this->salt);
-        // Generate short hash within a transaction to avoid odd timing-related
-        // problems:
-        $connection = $this->table->getAdapter()->getDriver()->getConnection();
-        $connection->beginTransaction();
+        $shortHash = '';
         $shortHash = $this
-            ->saveAndShortenHash($path, $hash, $this->preferredHashLength);
-        $connection->commit();
+                ->saveAndShortenHash($path, $hash, $this->preferredHashLength);
         return $shortHash;
     }
 
@@ -231,11 +277,16 @@ class Database implements UrlShortenerInterface
      */
     public function resolve($input)
     {
-        $results = $this->table->select(['hash' => $input]);
-        if ($results->count() !== 1) {
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->select('s')
+            ->from(Shortlinks::class, 's')
+            ->where('s.hash = :hash')
+            ->setParameter('hash', $input);
+        $query = $queryBuilder->getQuery();
+        $result = $query->getResult();
+        if (count($result) !== 1) {
             throw new Exception('Shortlink could not be resolved: ' . $input);
         }
-
-        return $this->baseUrl . $results->current()['path'];
+        return $this->baseUrl . current($result)->getPath();
     }
 }

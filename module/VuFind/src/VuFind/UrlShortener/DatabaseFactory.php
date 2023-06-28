@@ -61,8 +61,10 @@ class DatabaseFactory
         $router = $container->get('HttpRouter');
         $serverUrl = $container->get('ViewRenderer')->plugin('serverurl');
         $baseUrl = $serverUrl($router->assemble([], ['name' => 'home']));
-        $table = $container->get(\VuFind\Db\Table\PluginManager::class)
-            ->get('shortlinks');
+        $entityManager = $container->get('doctrine.entitymanager.orm_vufind');
+        $entityPluginManager = $container->get(
+            \VuFind\Db\Entity\PluginManager::class
+        );
         $config = $container->get(\VuFind\Config\PluginManager::class)
             ->get('config');
         $salt = $config->Security->HMACkey ?? '';
@@ -70,6 +72,12 @@ class DatabaseFactory
             throw new Exception('HMACkey missing from configuration.');
         }
         $hashType = $config->Mail->url_shortener_key_type ?? 'md5';
-        return new $requestedName(rtrim($baseUrl, '/'), $table, $salt, $hashType);
+        return new $requestedName(
+            rtrim($baseUrl, '/'),
+            $entityManager,
+            $entityPluginManager,
+            $salt,
+            $hashType
+        );
     }
 }
