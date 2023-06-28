@@ -29,11 +29,10 @@ namespace VuFind\UrlShortener;
 
 use Doctrine\ORM\EntityManager;
 use Exception;
-use DateTime;
 use Laminas\Log\LoggerAwareInterface;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
-use VuFind\Log\LoggerAwareTrait;
 use VuFind\Db\Entity\Shortlinks;
+use VuFind\Log\LoggerAwareTrait;
 
 /**
  * Local database-driven URL shortener.
