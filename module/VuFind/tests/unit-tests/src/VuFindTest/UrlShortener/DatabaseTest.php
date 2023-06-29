@@ -59,7 +59,7 @@ class DatabaseTest extends TestCase
         $pluginManager,
         $hashAlgorithm = 'md5'
     ) {
-        $entityManager= $entityManager;
+        $entityManager = $entityManager;
         $pluginManager = $pluginManager;
 
         $database = new Database(
@@ -80,7 +80,7 @@ class DatabaseTest extends TestCase
      */
     protected function getPluginManager()
     {
-        $pluginManager= $this->getMockBuilder(
+        $pluginManager = $this->getMockBuilder(
             \VuFind\Db\Entity\PluginManager::class
         )->disableOriginalConstructor()
             ->getMock();
@@ -90,14 +90,14 @@ class DatabaseTest extends TestCase
     /**
      * Mock entity manager.
      *
-     * @param string $parameter Input query parameter
-     * @param string $count     Exepectation count
+     * @param ?string $shortlink Input query parameter
+     * @param int     $count     Expectation count
      *
      * @return MockObject
      */
     protected function getEntityManager($shortlink = null, $count = 0)
     {
-        $entityManager= $this->getMockBuilder(\Doctrine\ORM\EntityManager::class)
+        $entityManager = $this->getMockBuilder(\Doctrine\ORM\EntityManager::class)
             ->disableOriginalConstructor()
             ->getMock();
         if ($shortlink) {
