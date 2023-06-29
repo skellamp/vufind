@@ -1,8 +1,9 @@
 <?php
+
 /**
  * Entity model for resource table
  *
- * PHP version 7
+ * PHP version 8
  *
  * Copyright (C) Villanova University 2023.
  *
@@ -25,6 +26,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
+
 namespace VuFind\Db\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -146,6 +148,16 @@ class Resource implements EntityInterface
     }
 
     /**
+     * Record Id getter
+     *
+     * @return string
+     */
+    public function getRecordId(): string
+    {
+        return $this->recordId;
+    }
+
+    /**
      * Title setter
      *
      * @param string $title Title of the record.
@@ -195,6 +207,16 @@ class Resource implements EntityInterface
     {
         $this->source = $source;
         return $this;
+    }
+
+    /**
+     * Source getter
+     *
+     * @return string
+     */
+    public function getSource(): string
+    {
+        return $this->source;
     }
 
     /**

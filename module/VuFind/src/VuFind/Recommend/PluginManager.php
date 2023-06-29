@@ -1,8 +1,9 @@
 <?php
+
 /**
  * Recommendation module plugin manager
  *
- * PHP version 7
+ * PHP version 8
  *
  * Copyright (C) Villanova University 2010.
  *
@@ -25,6 +26,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:recommendation_modules Wiki
  */
+
 namespace VuFind\Recommend;
 
 use Laminas\ServiceManager\Factory\InvokableFactory;
@@ -63,6 +65,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         'externalsearch' => ExternalSearch::class,
         'facetcloud' => FacetCloud::class,
         'favoritefacets' => FavoriteFacets::class,
+        'libguidesazresults' => LibGuidesAZResults::class,
+        'libguidesazresultsdeferred' => LibGuidesAZResultsDeferred::class,
         'libraryh3lp' => Libraryh3lp::class,
         'mapselection' => MapSelection::class,
         'sidefacets' => SideFacets::class,
@@ -115,6 +119,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         ExternalSearch::class => InvokableFactory::class,
         FacetCloud::class => ExpandFacetsFactory::class,
         FavoriteFacets::class => FavoriteFacetsFactory::class,
+        LibGuidesAZResults::class => InjectSearchRunnerFactory::class,
+        LibGuidesAZResultsDeferred::class => InvokableFactory::class,
         Libraryh3lp::class => InvokableFactory::class,
         MapSelection::class => MapSelectionFactory::class,
         OpenLibrarySubjects::class => InvokableFactory::class,

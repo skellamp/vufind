@@ -1,8 +1,9 @@
 <?php
+
 /**
  * EDS API Backend
  *
- * PHP version 7
+ * PHP version 8
  *
  * Copyright (C) EBSCO Industries 2013
  *
@@ -26,6 +27,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org
  */
+
 namespace VuFindSearch\Backend\EDS;
 
 use Exception;
@@ -134,6 +136,13 @@ class Backend extends AbstractBackend
      * @var bool
      */
     protected $isGuest;
+
+    /**
+     * Backend type
+     *
+     * @var str
+     */
+    protected $backendType = null;
 
     /**
      * Constructor.
@@ -293,29 +302,44 @@ class Backend extends AbstractBackend
                 $this->profile = $overrideProfile;
             }
             $sessionToken = $this->getSessionToken();
-            $parts = explode(',', $id, 2);
-            if (!isset($parts[1])) {
+
+            if ('EDS' === $this->backendType) {
+                $parts = explode(',', $id, 2);
+                if (!isset($parts[1])) {
+                    throw new BackendException(
+                        'Retrieval id is not in the correct format.'
+                    );
+                }
+                [$dbId, $an] = $parts;
+                $hlTerms = (null !== $params)
+                    ? $params->get('highlightterms') : null;
+                $extras = [];
+                if (
+                    null !== $params
+                    && ($eBookFormat = $params->get('ebookpreferredformat'))
+                ) {
+                    $extras['ebookpreferredformat'] = $eBookFormat;
+                }
+                $response = $this->client->retrieveEdsItem(
+                    $an,
+                    $dbId,
+                    $authenticationToken,
+                    $sessionToken,
+                    $hlTerms,
+                    $extras
+                );
+            } elseif ('EPF' === $this->backendType) {
+                $pubId = $id;
+                $response = $this->client->retrieveEpfItem(
+                    $pubId,
+                    $authenticationToken,
+                    $sessionToken
+                );
+            } else {
                 throw new BackendException(
-                    'Retrieval id is not in the correct format.'
+                    'Unknown backendType: ' . $this->backendType
                 );
             }
-            [$dbId, $an] = $parts;
-            $hlTerms = (null !== $params)
-                ? $params->get('highlightterms') : null;
-            $extras = [];
-            if (null !== $params
-                && ($eBookFormat = $params->get('ebookpreferredformat'))
-            ) {
-                $extras['ebookpreferredformat'] = $eBookFormat;
-            }
-            $response = $this->client->retrieve(
-                $an,
-                $dbId,
-                $authenticationToken,
-                $sessionToken,
-                $hlTerms,
-                $extras
-            );
         } catch (ApiException $e) {
             // Error codes can be reviewed at
             // https://connect.ebsco.com/s/article
@@ -382,7 +406,7 @@ class Backend extends AbstractBackend
         // Most parameters need to be flattened from array format, but a few
         // should remain as arrays:
         $arraySettings = [
-            'query', 'facets', 'filters', 'groupFilters', 'rangeFilters', 'limiters'
+            'query', 'facets', 'filters', 'groupFilters', 'rangeFilters', 'limiters',
         ];
         foreach ($params as $key => $param) {
             $options[$key] = in_array($key, $arraySettings)
@@ -546,7 +570,8 @@ class Backend extends AbstractBackend
             $results = $this->client
                 ->authenticate($username, $password, $this->orgId, ['autocomplete']);
             $autoresult = $results['Autocomplete'] ?? [];
-            if (isset($autoresult['Token']) && isset($autoresult['TokenTimeOut'])
+            if (
+                isset($autoresult['Token']) && isset($autoresult['TokenTimeOut'])
                 && isset($autoresult['CustId']) && isset($autoresult['Url'])
             ) {
                 $token = $autoresult['Token'];
@@ -587,7 +612,8 @@ class Backend extends AbstractBackend
     {
         // check to see if the user has logged in/out between the creation
         // of this session token and now
-        if (!$isInvalid && !empty($this->session->sessionID)
+        if (
+            !$isInvalid && !empty($this->session->sessionID)
             && $this->session->sessionGuest == $this->isGuest()
         ) {
             return $this->session->sessionID;
@@ -735,5 +761,17 @@ class Backend extends AbstractBackend
     public function setAuthManager($authManager)
     {
         $this->authManager = $authManager;
+    }
+
+    /**
+     * Set the EBSCO backend type.  Backend/EDS is used for both EDS and EPF.
+     *
+     * @param str $backendType 'EDS' or 'EPF'
+     *
+     * @return void
+     */
+    public function setBackendType($backendType)
+    {
+        $this->backendType = $backendType;
     }
 }

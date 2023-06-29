@@ -1,8 +1,9 @@
 <?php
+
 /**
  * Database service for feedback.
  *
- * PHP version 7
+ * PHP version 8
  *
  * Copyright (C) Villanova University 2023.
  *
@@ -25,6 +26,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
+
 namespace VuFind\Db\Service;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
@@ -62,7 +64,7 @@ class FeedbackService extends AbstractService
     public function createEntity(): Feedback
     {
         $class = $this->getEntityClass(Feedback::class);
-        return new $class;
+        return new $class();
     }
 
     /**
@@ -109,6 +111,7 @@ class FeedbackService extends AbstractService
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
 
+        $page = null === $page ? null : intval($page);
         if (null !== $page) {
             $query->setMaxResults($limit);
             $query->setFirstResult($limit * ($page - 1));
