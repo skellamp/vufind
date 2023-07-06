@@ -63,9 +63,11 @@ class DatabaseFactory
         $router = $container->get('HttpRouter');
         $serverUrl = $container->get('ViewRenderer')->plugin('serverurl');
         $baseUrl = $serverUrl($router->assemble([], ['name' => 'home']));
-        $entityManager = $container->get('doctrine.entitymanager.orm_vufind');
-        $entityPluginManager = $container->get(
-            \VuFind\Db\Entity\PluginManager::class
+        $servicePluginManager = $container->get(
+            \VuFind\Db\Service\PluginManager::class
+        );
+        $shortlinksService =  $servicePluginManager->get(
+            \VuFind\Db\Service\ShortlinksService::class
         );
         $config = $container->get(\VuFind\Config\PluginManager::class)
             ->get('config');
@@ -76,8 +78,7 @@ class DatabaseFactory
         $hashType = $config->Mail->url_shortener_key_type ?? 'md5';
         return new $requestedName(
             rtrim($baseUrl, '/'),
-            $entityManager,
-            $entityPluginManager,
+            $shortlinksService,
             $salt,
             $hashType
         );

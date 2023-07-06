@@ -48,24 +48,34 @@ class DatabaseTest extends TestCase
     /**
      * Database object to test.
      *
-     * @param MockObject $entityManager Mock entity manager object
-     * @param MockObject $pluginManager Mock plugin manager object
-     * @param string     $hashAlgorithm Hash Algorithm to be used
+     * @param MockObject      $entityManager Mock entity manager object
+     * @param MockObject      $pluginManager Mock plugin manager object
+     * @param MockObject|null $shortlink     Mock shortlink entity object
+     * @param string          $hashAlgorithm Hash Algorithm to be used
      *
      * @return Database
      */
     protected function getShortner(
         $entityManager,
         $pluginManager,
+        $shortlink = null,
         $hashAlgorithm = 'md5'
     ) {
         $entityManager = $entityManager;
         $pluginManager = $pluginManager;
-
+        $serviceMock = $this->getMockBuilder(
+            \VuFind\Db\Service\ShortlinksService::class
+        )
+            ->setMethods(['createEntity'])
+            ->setConstructorArgs([$entityManager, $pluginManager])
+            ->getMock();
+        if ($shortlink) {
+            $serviceMock->expects($this->once())->method('createEntity')
+                ->willReturn($shortlink);
+        }
         $database = new Database(
             'http://foo',
-            $entityManager,
-            $pluginManager,
+            $serviceMock,
             'RAnD0mVuFindSa!t',
             $hashAlgorithm
         );
@@ -90,8 +100,8 @@ class DatabaseTest extends TestCase
     /**
      * Mock entity manager.
      *
-     * @param ?string $shortlink Input query parameter
-     * @param int     $count     Expectation count
+     * @param string|null $shortlink Input query parameter
+     * @param int         $count     Expectation count
      *
      * @return MockObject
      */
@@ -144,6 +154,42 @@ class DatabaseTest extends TestCase
     }
 
     /**
+     * Test that the shortener works correctly under base62 hashing
+     *
+     * @return void
+     *
+     * @throws Exception
+     */
+    public function testGetBase62Hash()
+    {
+        $shortlink = $this->getMockBuilder(\VuFind\Db\Entity\Shortlinks::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $entityManager = $this->getEntityManager($shortlink, 2);
+        $pluginManager = $this->getPluginManager();
+        $shortlink->expects($this->once())->method('setPath')
+            ->with($this->equalTo('/bar'))
+            ->willReturn($shortlink);
+        $shortlink->expects($this->once())->method('setCreated')
+            ->with($this->anything())
+            ->willReturn($shortlink);
+        $shortlink->expects($this->once())->method('getId')
+            ->willReturn(2);
+        $shortlink->expects($this->once())->method('setHash')
+            ->with($this->equalTo('2'))
+            ->willReturn($shortlink);
+        $shortlink->expects($this->once())->method('getHash')
+            ->willReturn('2');
+        $db = $this->getShortner(
+            $entityManager,
+            $pluginManager,
+            $shortlink,
+            'base62'
+        );
+        $this->assertEquals('http://foo/short/2', $db->shorten('http://foo/bar'));
+    }
+
+    /**
      * Test that the shortener works correctly under "happy path."
      *
      * @return void
@@ -161,8 +207,6 @@ class DatabaseTest extends TestCase
 
         $entityManager->expects($this->once())->method('createQueryBuilder')
             ->willReturn($queryBuilder);
-        $pluginManager->expects($this->once())->method('get')
-            ->willReturn($shortlink);
 
         $shortlink->expects($this->once())->method('setHash')
             ->with($this->equalTo('a1e7812e2'))
@@ -182,41 +226,11 @@ class DatabaseTest extends TestCase
             ->willReturn($this->equalTo(true));
         $connection->expects($this->once())->method('commit')
             ->willReturn($this->equalTo(true));
-        $db = $this->getShortner($entityManager, $pluginManager);
-        $this->assertEquals('http://foo/short/a1e7812e2', $db->shorten('http://foo/bar'));
-    }
-
-    /**
-     * Test that the shortener works correctly under base62 hashing
-     *
-     * @return void
-     *
-     * @throws Exception
-     */
-    public function testGetBase62Hash()
-    {
-        $shortlink = $this->getMockBuilder(\VuFind\Db\Entity\Shortlinks::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $entityManager = $this->getEntityManager($shortlink, 2);
-        $pluginManager = $this->getPluginManager();
-        $pluginManager->expects($this->once())->method('get')
-            ->willReturn($shortlink);
-        $shortlink->expects($this->once())->method('setPath')
-            ->with($this->equalTo('/bar'))
-            ->willReturn($shortlink);
-        $shortlink->expects($this->once())->method('setCreated')
-            ->with($this->anything())
-            ->willReturn($shortlink);
-        $shortlink->expects($this->once())->method('getId')
-            ->willReturn(2);
-        $shortlink->expects($this->once())->method('setHash')
-            ->with($this->equalTo('2'))
-            ->willReturn($shortlink);
-        $shortlink->expects($this->once())->method('getHash')
-            ->willReturn('2');
-        $db = $this->getShortner($entityManager, $pluginManager, 'base62');
-        $this->assertEquals('http://foo/short/2', $db->shorten('http://foo/bar'));
+        $db = $this->getShortner($entityManager, $pluginManager, $shortlink);
+        $this->assertEquals(
+            'http://foo/short/a1e7812e2',
+            $db->shorten('http://foo/bar')
+        );
     }
 
     /**

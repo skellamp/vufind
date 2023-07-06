@@ -75,7 +75,7 @@ class Shortlinks implements EntityInterface
     /**
      * Shortlinks hash.
      *
-     * @var string|null
+     * @var ?string
      *
      * @ORM\Column(name="hash", type="string", length=32, nullable=true)
      */
@@ -120,9 +120,9 @@ class Shortlinks implements EntityInterface
     /**
      * Hash getter
      *
-     * @return string
+     * @return ?string
      */
-    public function getHash(): string
+    public function getHash(): ?string
     {
         return $this->hash;
     }
@@ -166,9 +166,9 @@ class Shortlinks implements EntityInterface
     /**
      * Created getter
      *
-     * @return Datetime
+     * @return DateTime
      */
-    public function getCreated()
+    public function getCreated(): DateTime
     {
         return $this->created;
     }

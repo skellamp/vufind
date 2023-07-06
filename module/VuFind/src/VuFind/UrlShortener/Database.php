@@ -29,12 +29,7 @@
 
 namespace VuFind\UrlShortener;
 
-use Doctrine\ORM\EntityManager;
-use Exception;
-use Laminas\Log\LoggerAwareInterface;
-use VuFind\Db\Entity\PluginManager as EntityPluginManager;
-use VuFind\Db\Entity\Shortlinks;
-use VuFind\Log\LoggerAwareTrait;
+use VuFind\Db\Service\ShortlinksService;
 
 /**
  * Local database-driven URL shortener.
@@ -46,10 +41,8 @@ use VuFind\Log\LoggerAwareTrait;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
-class Database implements UrlShortenerInterface, LoggerAwareInterface
+class Database implements UrlShortenerInterface
 {
-    use LoggerAwareTrait;
-
     /**
      * Hash algorithm to use
      *
@@ -65,18 +58,11 @@ class Database implements UrlShortenerInterface, LoggerAwareInterface
     protected $baseUrl;
 
     /**
-     * Doctrine ORM entity manager
+     * Shortlinks database service
      *
-     * @var EntityManager
+     * @var \VuFind\Db\Service\ShortlinksService
      */
-    protected $entityManager;
-
-    /**
-     * VuFind entity plugin manager
-     *
-     * @var EntityPluginManager
-     */
-    protected $entityPluginManager;
+    protected $shortlinksService;
 
     /**
      * HMacKey from config
@@ -106,116 +92,21 @@ class Database implements UrlShortenerInterface, LoggerAwareInterface
     /**
      * Constructor
      *
-     * @param string              $baseUrl       Base URL of current VuFind site
-     * @param EntityManager       $entityManager Doctrine ORM entity manager
-     * @param EntityPluginManager $pluginManager VuFind entity plugin manager
-     * @param string              $salt          HMacKey from config
-     * @param string              $hashAlgorithm Hash algorithm to use
+     * @param string            $baseUrl           Base URL of current VuFind site
+     * @param ShortlinksService $shortlinksService Shortlinks database service
+     * @param string            $salt              HMacKey from config
+     * @param string            $hashAlgorithm     Hash algorithm to use
      */
     public function __construct(
         string $baseUrl,
-        EntityManager $entityManager,
-        EntityPluginManager $pluginManager,
+        ShortlinksService $shortlinksService,
         string $salt,
         string $hashAlgorithm = 'md5'
     ) {
         $this->baseUrl = $baseUrl;
-        $this->entityManager = $entityManager;
-        $this->entityPluginManager = $pluginManager;
+        $this->shortlinksService = $shortlinksService;
         $this->salt = $salt;
         $this->hashAlgorithm = $hashAlgorithm;
-    }
-
-    /**
-     * Generate a short hash using the base62 algorithm (and write a row to the
-     * database).
-     *
-     * @param string $path Path to store in database
-     *
-     * @return string
-     */
-    protected function getBase62Hash(string $path): string
-    {
-        $shortlink = $this->entityPluginManager->get(Shortlinks::class);
-        $now = new \DateTime();
-        $shortlink->setPath($path)
-            ->setCreated($now);
-        try {
-            $this->entityManager->persist($shortlink);
-            $this->entityManager->flush();
-            $id = $shortlink->getId();
-            $b62 = new \VuFind\Crypt\Base62();
-            $shortlink->setHash($b62->encode($id));
-            $this->entityManager->persist($shortlink);
-            $this->entityManager->flush();
-        } catch (\Exception $e) {
-            $this->logError('Could not save shortlink: ' . $e->getMessage());
-            throw $e;
-        }
-        return $shortlink->getHash();
-    }
-
-    /**
-     * Support method for getGenericHash(): do the work of picking a short version
-     * of the hash and writing to the database as needed.
-     *
-     * @param string $path   Path to store in database
-     * @param string $hash   Hash of $path (generated in getGenericHash)
-     * @param int    $length Minimum number of characters from hash to use for
-     * lookups (may be increased to enforce uniqueness)
-     *
-     * @return string
-     */
-    protected function saveAndShortenHash($path, $hash, $length)
-    {
-        // Validate hash length:
-        if ($length > $this->maxHashLength) {
-            throw new \Exception(
-                'Could not generate unique hash under ' . $this->maxHashLength
-                . ' characters in length.'
-            );
-        }
-        $shorthash = str_pad(substr($hash, 0, $length), $length, '_');
-
-        $queryBuilder = $this->entityManager->createQueryBuilder();
-        $queryBuilder->select('s')
-            ->from(Shortlinks::class, 's')
-            ->where('s.hash = :hash')
-            ->setParameter('hash', $shorthash);
-        $query = $queryBuilder->getQuery();
-        $results = $query->getResult();
-
-        // Brand new hash? Create row and return:
-        if (count($results) == 0) {
-            $shortlink = $this->entityPluginManager->get(Shortlinks::class);
-            $now = new \DateTime();
-            // Generate short hash within a transaction to avoid odd timing-related
-            // problems:
-            $this->entityManager->getConnection()->beginTransaction();
-            $shortlink->setHash($shorthash)
-                ->setPath($path)
-                ->setCreated($now);
-            try {
-                $this->entityManager->persist($shortlink);
-                $this->entityManager->flush();
-                $this->entityManager->getConnection()->commit();
-            } catch (\Exception $e) {
-                $this->logError('Could not save shortlink: ' . $e->getMessage());
-                $this->entityManager->getConnection()->rollBack();
-                throw $e;
-            }
-            return $shorthash;
-        }
-
-        // If we got this far, the hash already exists; let's check if it matches
-        // the path...
-        if (current($results)->getPath() === $path) {
-            return $shorthash;
-        }
-
-        // If we got here, we have encountered an unexpected hash collision. Let's
-        // disambiguate by making it one character longer:
-        return $this->saveAndShortenHash($path, $hash, $length + 1);
     }
 
     /**
@@ -230,8 +121,13 @@ class Database implements UrlShortenerInterface, LoggerAwareInterface
     {
         $hash = hash($this->hashAlgorithm, $path . $this->salt);
         $shortHash = '';
-        $shortHash = $this
-                ->saveAndShortenHash($path, $hash, $this->preferredHashLength);
+        $shortHash = $this->shortlinksService
+                ->saveAndShortenHash(
+                    $path,
+                    $hash,
+                    $this->preferredHashLength,
+                    $this->maxHashLength
+                );
         return $shortHash;
     }
 
@@ -250,7 +146,8 @@ class Database implements UrlShortenerInterface, LoggerAwareInterface
         // We need to handle things differently depending on whether we're
         // using the legacy base62 algorithm, or a different hash mechanism.
         $shorthash = $this->hashAlgorithm === 'base62'
-            ? $this->getBase62Hash($path) : $this->getGenericHash($path);
+            ? $this->shortlinksService->getBase62Hash($path)
+            : $this->getGenericHash($path);
 
         return $shorthash;
     }
@@ -273,21 +170,9 @@ class Database implements UrlShortenerInterface, LoggerAwareInterface
      * @param string $input hash
      *
      * @return string
-     *
-     * @throws Exception
      */
     public function resolve($input)
     {
-        $queryBuilder = $this->entityManager->createQueryBuilder();
-        $queryBuilder->select('s')
-            ->from(Shortlinks::class, 's')
-            ->where('s.hash = :hash')
-            ->setParameter('hash', $input);
-        $query = $queryBuilder->getQuery();
-        $result = $query->getResult();
-        if (count($result) !== 1) {
-            throw new Exception('Shortlink could not be resolved: ' . $input);
-        }
-        return $this->baseUrl . current($result)->getPath();
+        return $this->shortlinksService->resolve($input, $this->baseUrl);
     }
 }
