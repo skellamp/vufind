@@ -84,8 +84,8 @@ class DatabaseTest extends TestCase
     /**
      * Mock entity plugin manager.
      *
-     * @param int|null $setExpectation Flag to set the method expectations. 
-     * 
+     * @param int|null $setExpectation Flag to set the method expectations.
+     *
      * @return MockObject
      */
     protected function getPluginManager($setExpectation = null)
@@ -94,7 +94,7 @@ class DatabaseTest extends TestCase
             \VuFind\Db\Entity\PluginManager::class
         )->disableOriginalConstructor()
             ->getMock();
-        if ($setExpectation){
+        if ($setExpectation) {
             $pluginManager->expects($this->once())->method('get')
                 ->with($this->equalTo(Shortlinks::class))
                 ->willReturn(new Shortlinks());
