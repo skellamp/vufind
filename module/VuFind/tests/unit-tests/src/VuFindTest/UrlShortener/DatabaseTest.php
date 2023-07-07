@@ -84,14 +84,21 @@ class DatabaseTest extends TestCase
     /**
      * Mock entity plugin manager.
      *
+     * @param int|null $setExpectation Flag to set the method expectations. 
+     * 
      * @return MockObject
      */
-    protected function getPluginManager()
+    protected function getPluginManager($setExpectation = null)
     {
         $pluginManager = $this->getMockBuilder(
             \VuFind\Db\Entity\PluginManager::class
         )->disableOriginalConstructor()
             ->getMock();
+        if ($setExpectation){
+            $pluginManager->expects($this->once())->method('get')
+                ->with($this->equalTo(Shortlinks::class))
+                ->willReturn(new Shortlinks());
+        }
         return $pluginManager;
     }
 
@@ -200,12 +207,11 @@ class DatabaseTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $entityManager = $this->getEntityManager($shortlink, 1);
-        $pluginManager = $this->getPluginManager();
+        $pluginManager = $this->getPluginManager(1);
         $queryBuilder = $this->getQueryBuilder('a1e7812e2', []);
 
         $entityManager->expects($this->once())->method('createQueryBuilder')
             ->willReturn($queryBuilder);
-
         $shortlink->expects($this->once())->method('setHash')
             ->with($this->equalTo('a1e7812e2'))
             ->willReturn($shortlink);
@@ -244,9 +250,8 @@ class DatabaseTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $entityManager = $this->getEntityManager();
-        $pluginManager = $this->getPluginManager();
+        $pluginManager = $this->getPluginManager(1);
         $queryBuilder = $this->getQueryBuilder('8ef580184', [$shortlink]);
-
         $entityManager->expects($this->once())->method('createQueryBuilder')
             ->willReturn($queryBuilder);
         $shortlink->expects($this->once())->method('getPath')
@@ -267,9 +272,8 @@ class DatabaseTest extends TestCase
         $this->expectExceptionMessage('Shortlink could not be resolved: abcd12?');
 
         $entityManager = $this->getEntityManager();
-        $pluginManager = $this->getPluginManager();
+        $pluginManager = $this->getPluginManager(1);
         $queryBuilder = $this->getQueryBuilder('abcd12?', []);
-
         $entityManager->expects($this->once())->method('createQueryBuilder')
             ->willReturn($queryBuilder);
         $db = $this->getShortener($entityManager, $pluginManager);
