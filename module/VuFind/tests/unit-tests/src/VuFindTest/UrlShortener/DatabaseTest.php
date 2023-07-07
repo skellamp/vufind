@@ -55,14 +55,12 @@ class DatabaseTest extends TestCase
      *
      * @return Database
      */
-    protected function getShortner(
+    protected function getShortener(
         $entityManager,
         $pluginManager,
         $shortlink = null,
         $hashAlgorithm = 'md5'
     ) {
-        $entityManager = $entityManager;
-        $pluginManager = $pluginManager;
         $serviceMock = $this->getMockBuilder(
             \VuFind\Db\Service\ShortlinksService::class
         )
@@ -180,7 +178,7 @@ class DatabaseTest extends TestCase
             ->willReturn($shortlink);
         $shortlink->expects($this->once())->method('getHash')
             ->willReturn('2');
-        $db = $this->getShortner(
+        $db = $this->getShortener(
             $entityManager,
             $pluginManager,
             $shortlink,
@@ -226,7 +224,7 @@ class DatabaseTest extends TestCase
             ->willReturn($this->equalTo(true));
         $connection->expects($this->once())->method('commit')
             ->willReturn($this->equalTo(true));
-        $db = $this->getShortner($entityManager, $pluginManager, $shortlink);
+        $db = $this->getShortener($entityManager, $pluginManager, $shortlink);
         $this->assertEquals(
             'http://foo/short/a1e7812e2',
             $db->shorten('http://foo/bar')
@@ -253,7 +251,7 @@ class DatabaseTest extends TestCase
             ->willReturn($queryBuilder);
         $shortlink->expects($this->once())->method('getPath')
             ->willReturn('/bar');
-        $db = $this->getShortner($entityManager, $pluginManager);
+        $db = $this->getShortener($entityManager, $pluginManager);
         $this->assertEquals('http://foo/bar', $db->resolve('8ef580184'));
     }
 
@@ -274,7 +272,7 @@ class DatabaseTest extends TestCase
 
         $entityManager->expects($this->once())->method('createQueryBuilder')
             ->willReturn($queryBuilder);
-        $db = $this->getShortner($entityManager, $pluginManager);
+        $db = $this->getShortener($entityManager, $pluginManager);
         $db->resolve('abcd12?');
     }
 }

@@ -88,11 +88,10 @@ class ShortlinksService extends AbstractService implements LoggerAwareInterface
     }
 
     /**
-     * Support method for getGenericHash(): do the work of picking a short version
-     * of the hash and writing to the database as needed.
+     * Pick a shortened version of a hash and write it to the database as needed.
      *
      * @param string $path          Path to store in database
-     * @param string $hash          Hash of $path (generated in getGenericHash)
+     * @param string $hash          Hash of $path
      * @param int    $length        Minimum number of characters from hash to use for
      *                              lookups (may be increased to enforce uniqueness)
      * @param int    $maxHashLength The maximum allowed hash length
@@ -112,7 +111,7 @@ class ShortlinksService extends AbstractService implements LoggerAwareInterface
 
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $queryBuilder->select('s')
-            ->from(Shortlinks::class, 's')
+            ->from($this->getEntityClass(Shortlinks::class), 's')
             ->where('s.hash = :hash')
             ->setParameter('hash', $shorthash);
         $query = $queryBuilder->getQuery();
@@ -165,7 +164,7 @@ class ShortlinksService extends AbstractService implements LoggerAwareInterface
     {
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $queryBuilder->select('s')
-            ->from(Shortlinks::class, 's')
+            ->from($this->getEntityClass(Shortlinks::class), 's')
             ->where('s.hash = :hash')
             ->setParameter('hash', $input);
         $query = $queryBuilder->getQuery();

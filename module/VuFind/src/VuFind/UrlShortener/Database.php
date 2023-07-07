@@ -60,7 +60,7 @@ class Database implements UrlShortenerInterface
     /**
      * Shortlinks database service
      *
-     * @var \VuFind\Db\Service\ShortlinksService
+     * @var ShortlinksService
      */
     protected $shortlinksService;
 
@@ -120,14 +120,13 @@ class Database implements UrlShortenerInterface
     protected function getGenericHash(string $path): string
     {
         $hash = hash($this->hashAlgorithm, $path . $this->salt);
-        $shortHash = '';
         $shortHash = $this->shortlinksService
-                ->saveAndShortenHash(
-                    $path,
-                    $hash,
-                    $this->preferredHashLength,
-                    $this->maxHashLength
-                );
+            ->saveAndShortenHash(
+                $path,
+                $hash,
+                $this->preferredHashLength,
+                $this->maxHashLength
+            );
         return $shortHash;
     }
 
