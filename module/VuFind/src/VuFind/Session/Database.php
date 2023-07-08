@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) Villanova University 2010.
+ * Copyright (C) Villanova University 2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -29,6 +29,9 @@
 
 namespace VuFind\Session;
 
+use VuFind\Db\Service\ServiceAwareInterface;
+use VuFind\Db\Service\ServiceAwareTrait;
+use VuFind\Db\Service\SessionService;
 use VuFind\Exception\SessionExpired as SessionExpiredException;
 
 /**
@@ -40,8 +43,10 @@ use VuFind\Exception\SessionExpired as SessionExpiredException;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:session_handlers Wiki
  */
-class Database extends AbstractBase
+class Database extends AbstractBase implements ServiceAwareInterface
 {
+    use ServiceAwareTrait;
+
     /**
      * Read function must return string value always to make save handler work as
      * expected. Return empty string if there is no data to read.
@@ -54,7 +59,7 @@ class Database extends AbstractBase
     {
         // Try to read the session, but destroy it if it has expired:
         try {
-            return $this->getTable('Session')
+            return $this->getSessionService()
                 ->readSession($sessId, $this->lifetime);
         } catch (SessionExpiredException $e) {
             $this->destroy($sessId);
@@ -76,7 +81,7 @@ class Database extends AbstractBase
         parent::destroy($sessId);
 
         // Now do database-specific destruction:
-        $this->getTable('Session')->destroySession($sessId);
+        $this->getSessionService()->destroySession($sessId);
 
         return true;
     }
@@ -92,7 +97,7 @@ class Database extends AbstractBase
     #[\ReturnTypeWillChange]
     public function gc($sessMaxLifetime)
     {
-        $this->getTable('Session')->garbageCollect($sessMaxLifetime);
+        $this->getSessionService()->garbageCollect($sessMaxLifetime);
         return true;
     }
 
@@ -106,7 +111,17 @@ class Database extends AbstractBase
      */
     protected function saveSession($sessId, $data): bool
     {
-        $this->getTable('Session')->writeSession($sessId, $data);
+        $this->getSessionService()->writeSession($sessId, $data);
         return true;
+    }
+
+    /**
+     * Get a session service object
+     *
+     * @return \VuFind\Db\Service\SessionService
+     */
+    protected function getSessionService()
+    {
+        return $this->getDbService(SessionService::class);
     }
 }
