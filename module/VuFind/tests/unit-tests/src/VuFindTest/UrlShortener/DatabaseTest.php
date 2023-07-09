@@ -84,11 +84,11 @@ class DatabaseTest extends TestCase
     /**
      * Mock entity plugin manager.
      *
-     * @param int|null $setExpectation Flag to set the method expectations.
+     * @param bool $setExpectation Flag to set the method expectations.
      *
      * @return MockObject
      */
-    protected function getPluginManager($setExpectation = null)
+    protected function getPluginManager($setExpectation = false)
     {
         $pluginManager = $this->getMockBuilder(
             \VuFind\Db\Entity\PluginManager::class
@@ -207,7 +207,7 @@ class DatabaseTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $entityManager = $this->getEntityManager($shortlink, 1);
-        $pluginManager = $this->getPluginManager(1);
+        $pluginManager = $this->getPluginManager(true);
         $queryBuilder = $this->getQueryBuilder('a1e7812e2', []);
 
         $entityManager->expects($this->once())->method('createQueryBuilder')
@@ -250,7 +250,7 @@ class DatabaseTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $entityManager = $this->getEntityManager();
-        $pluginManager = $this->getPluginManager(1);
+        $pluginManager = $this->getPluginManager(true);
         $queryBuilder = $this->getQueryBuilder('8ef580184', [$shortlink]);
         $entityManager->expects($this->once())->method('createQueryBuilder')
             ->willReturn($queryBuilder);
@@ -272,7 +272,7 @@ class DatabaseTest extends TestCase
         $this->expectExceptionMessage('Shortlink could not be resolved: abcd12?');
 
         $entityManager = $this->getEntityManager();
-        $pluginManager = $this->getPluginManager(1);
+        $pluginManager = $this->getPluginManager(true);
         $queryBuilder = $this->getQueryBuilder('abcd12?', []);
         $entityManager->expects($this->once())->method('createQueryBuilder')
             ->willReturn($queryBuilder);
