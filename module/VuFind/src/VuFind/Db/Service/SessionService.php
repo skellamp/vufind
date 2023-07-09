@@ -60,7 +60,7 @@ class SessionService extends AbstractService implements LoggerAwareInterface
     {
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $queryBuilder->select('s')
-            ->from(Session::class, 's')
+            ->from($this->getEntityClass(Session::class), 's')
             ->where('s.sessionId = :sid')
             ->setParameter('sid', $sid);
         $query = $queryBuilder->getQuery();
@@ -143,7 +143,7 @@ class SessionService extends AbstractService implements LoggerAwareInterface
     public function destroySession($sid)
     {
         $queryBuilder = $this->entityManager->createQueryBuilder();
-        $queryBuilder->delete(Session::class, 's')
+        $queryBuilder->delete($this->getEntityClass(Session::class), 's')
             ->where('s.sessionId = :sid')
             ->setParameter('sid', $sid);
         $query = $queryBuilder->getQuery();
@@ -160,7 +160,7 @@ class SessionService extends AbstractService implements LoggerAwareInterface
     public function garbageCollect($sess_maxlifetime)
     {
         $queryBuilder = $this->entityManager->createQueryBuilder();
-        $queryBuilder->delete(Session::class, 's')
+        $queryBuilder->delete($this->getEntityClass(Session::class), 's')
             ->where('s.lastUsed < used')
             ->setParameter('used', time() - intval($sess_maxlifetime));
         $query = $queryBuilder->getQuery();
