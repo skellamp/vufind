@@ -80,10 +80,10 @@ class SystemStatus extends AbstractBase
     /**
      * Constructor
      *
-     * @param SessionManager $sm     Session manager
-     * @param ResultsManager $rm     Results manager
-     * @param Config         $config Top-level VuFind configuration (config.ini)
-     * @param Session        $table  Session database table
+     * @param SessionManager $sm             Session manager
+     * @param ResultsManager $rm             Results manager
+     * @param Config         $config         Top-level VuFind configuration (config.ini)
+     * @param SessionService $sessionService Session database service
      */
     public function __construct(
         SessionManager $sm,
