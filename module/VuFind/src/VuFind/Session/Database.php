@@ -29,8 +29,6 @@
 
 namespace VuFind\Session;
 
-use VuFind\Db\Service\ServiceAwareInterface;
-use VuFind\Db\Service\ServiceAwareTrait;
 use VuFind\Db\Service\SessionService;
 use VuFind\Exception\SessionExpired as SessionExpiredException;
 
@@ -43,10 +41,8 @@ use VuFind\Exception\SessionExpired as SessionExpiredException;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:session_handlers Wiki
  */
-class Database extends AbstractBase implements ServiceAwareInterface
+class Database extends AbstractBase
 {
-    use ServiceAwareTrait;
-
     /**
      * Read function must return string value always to make save handler work as
      * expected. Return empty string if there is no data to read.

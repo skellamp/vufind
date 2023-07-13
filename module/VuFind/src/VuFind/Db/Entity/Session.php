@@ -67,7 +67,7 @@ class Session implements EntityInterface
     /**
      * Session ID.
      *
-     * @var string|null
+     * @var ?string
      *
      * @ORM\Column(name="session_id", type="string", length=128, nullable=true)
      */
@@ -76,7 +76,7 @@ class Session implements EntityInterface
     /**
      * Session data.
      *
-     * @var string|null
+     * @var ?string
      *
      * @ORM\Column(name="data", type="text", length=16777215, nullable=true)
      */

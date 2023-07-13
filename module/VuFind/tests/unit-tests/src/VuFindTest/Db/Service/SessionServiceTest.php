@@ -67,20 +67,17 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
     /**
      * Mock entity manager.
      *
-     * @param string|null $session Input query parameter
-     * @param int         $count   Expectation count
+     * @param int $count Expectation count
      *
      * @return MockObject
      */
-    protected function getEntityManager($session = null, $count = 0)
+    protected function getEntityManager($count = 0)
     {
         $entityManager = $this->getMockBuilder(\Doctrine\ORM\EntityManager::class)
             ->disableOriginalConstructor()
             ->getMock();
-        if ($session) {
-            $entityManager->expects($this->exactly($count))->method('persist');
-            $entityManager->expects($this->exactly($count))->method('flush');
-        }
+        $entityManager->expects($this->exactly($count))->method('persist');
+        $entityManager->expects($this->exactly($count))->method('flush');
         return $entityManager;
     }
 
@@ -123,9 +120,9 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
     /**
      * Session service object to test.
      *
-     * @param MockObject      $entityManager Mock entity manager object
-     * @param MockObject      $pluginManager Mock plugin manager object
-     * @param MockObject|null $session       Mock session entity object
+     * @param MockObject  $entityManager Mock entity manager object
+     * @param MockObject  $pluginManager Mock plugin manager object
+     * @param ?MockObject $session       Mock session entity object
      *
      * @return MockObject
      */
@@ -148,7 +145,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Test retriving an session object from database.
+     * Test retrieving an session object from database.
      *
      * @return void
      */
@@ -157,13 +154,33 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
         $session = $this->getMockBuilder(\VuFind\Db\Entity\Session::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $entityManager = $this->getEntityManager($session);
+        $entityManager = $this->getEntityManager();
         $pluginManager = $this->getPluginManager(true);
         $queryBuilder = $this->getQueryBuilder('1', [$session]);
         $entityManager->expects($this->once())->method('createQueryBuilder')
             ->willReturn($queryBuilder);
         $service = $this->getService($entityManager, $pluginManager);
         $this->assertEquals($session, $service->getBySessionId('1', false));
+    }
+
+    /**
+     * Test the case where a session is not found and creating a new session
+     * is not required.
+     *
+     * @return void
+     */
+    public function testSessionNotFound()
+    {
+        $session = $this->getMockBuilder(\VuFind\Db\Entity\Session::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $entityManager = $this->getEntityManager();
+        $pluginManager = $this->getPluginManager(true);
+        $queryBuilder = $this->getQueryBuilder('1', []);
+        $entityManager->expects($this->once())->method('createQueryBuilder')
+            ->willReturn($queryBuilder);
+        $service = $this->getService($entityManager, $pluginManager);
+        $this->assertFalse($service->getBySessionId('1', false));
     }
 
     /**
@@ -176,7 +193,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
         $session = $this->getMockBuilder(\VuFind\Db\Entity\Session::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $entityManager = $this->getEntityManager($session, 1);
+        $entityManager = $this->getEntityManager(1);
         $pluginManager = $this->getPluginManager(true);
         $queryBuilder = $this->getQueryBuilder('1', []);
         $entityManager->expects($this->once())->method('createQueryBuilder')
@@ -201,7 +218,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
         $session = $this->getMockBuilder(\VuFind\Db\Entity\Session::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $entityManager = $this->getEntityManager($session, 1);
+        $entityManager = $this->getEntityManager(1);
         $pluginManager = $this->getPluginManager(true);
         $queryBuilder = $this->getQueryBuilder('1', [$session]);
         $entityManager->expects($this->once())->method('createQueryBuilder')
@@ -213,7 +230,30 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
         $session->expects($this->once())->method('getData')
             ->willReturn('foo');
         $service = $this->getService($entityManager, $pluginManager);
-        $this->assertEquals('foo', $service->ReadSession('1', 10000000));
+        $this->assertEquals('foo', $service->readSession('1', 10000000));
+    }
+
+    /**
+     * Test reading expired session data.
+     *
+     * @return void
+     */
+    public function testReadingExpiredSession()
+    {
+        $this->expectException(\VuFind\Exception\SessionExpired::class);
+        $this->expectExceptionMessage('Session expired!');
+        $session = $this->getMockBuilder(\VuFind\Db\Entity\Session::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $entityManager = $this->getEntityManager();
+        $pluginManager = $this->getPluginManager(true);
+        $queryBuilder = $this->getQueryBuilder('1', [$session]);
+        $entityManager->expects($this->once())->method('createQueryBuilder')
+            ->willReturn($queryBuilder);
+        $session->expects($this->once())->method('getLastUsed')
+            ->willReturn(time() - 1000);
+        $service = $this->getService($entityManager, $pluginManager);
+        $service->readSession('1', 100);
     }
 
     /**
@@ -226,7 +266,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
         $session = $this->getMockBuilder(\VuFind\Db\Entity\Session::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $entityManager = $this->getEntityManager($session, 1);
+        $entityManager = $this->getEntityManager(1);
         $pluginManager = $this->getPluginManager(true);
         $queryBuilder = $this->getQueryBuilder('1', [$session]);
         $entityManager->expects($this->once())->method('createQueryBuilder')
@@ -251,7 +291,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
         $session = $this->getMockBuilder(\VuFind\Db\Entity\Session::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $entityManager = $this->getEntityManager($session);
+        $entityManager = $this->getEntityManager();
         $pluginManager = $this->getPluginManager(true);
         $queryBuilder = $this->getMockBuilder(\Doctrine\ORM\QueryBuilder::class)
             ->disableOriginalConstructor()
@@ -289,7 +329,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
         $session = $this->getMockBuilder(\VuFind\Db\Entity\Session::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $entityManager = $this->getEntityManager($session);
+        $entityManager = $this->getEntityManager();
         $pluginManager = $this->getPluginManager(true);
         $queryBuilder = $this->getMockBuilder(\Doctrine\ORM\QueryBuilder::class)
             ->disableOriginalConstructor()
@@ -301,7 +341,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
             ->with('s.lastUsed < used')
             ->willReturn($queryBuilder);
         $queryBuilder->expects($this->once())->method('setParameter')
-            ->with('used', time() - 10000)
+            ->with('used', $this->equalTo(time() - 10000, 1))
             ->willReturn($queryBuilder);
         $query = $this->getMockBuilder(\Doctrine\ORM\AbstractQuery::class)
             ->disableOriginalConstructor()

@@ -161,7 +161,7 @@ class SessionService extends AbstractService implements LoggerAwareInterface
     {
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $queryBuilder->delete($this->getEntityClass(Session::class), 's')
-            ->where('s.lastUsed < used')
+            ->where('s.lastUsed < :used')
             ->setParameter('used', time() - intval($sess_maxlifetime));
         $query = $queryBuilder->getQuery();
         $query->execute();
