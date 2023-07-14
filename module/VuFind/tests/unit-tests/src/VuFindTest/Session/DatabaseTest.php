@@ -144,8 +144,6 @@ class DatabaseTest extends \VuFindTest\Unit\SessionHandlerTestCase
      */
     protected function getMockSessionService()
     {
-        return $this->getMockBuilder(\VuFind\Db\Service\SessionService::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        return $this->services->get(\VuFind\Db\Service\SessionService::class);
     }
 }

@@ -108,7 +108,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
             ->willReturn($queryBuilder);
         $query = $this->getMockBuilder(\Doctrine\ORM\AbstractQuery::class)
             ->disableOriginalConstructor()
-            ->setMethods(['getResult'])
+            ->onlyMethods(['getResult'])
             ->getMockForAbstractClass();
         $query->expects($this->once())->method('getResult')
             ->willReturn($result);
@@ -134,7 +134,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
         $serviceMock = $this->getMockBuilder(
             \VuFind\Db\Service\SessionService::class
         )
-            ->setMethods(['createEntity'])
+            ->onlyMethods(['createEntity'])
             ->setConstructorArgs([$entityManager, $pluginManager])
             ->getMock();
         if ($session) {
@@ -307,7 +307,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
             ->willReturn($queryBuilder);
         $query = $this->getMockBuilder(\Doctrine\ORM\AbstractQuery::class)
             ->disableOriginalConstructor()
-            ->setMethods(['execute'])
+            ->onlyMethods(['execute'])
             ->getMockForAbstractClass();
         $query->expects($this->once())->method('execute')
             ->willReturn($this->anything());
@@ -338,14 +338,14 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
             ->with(Session::class, 's')
             ->willReturn($queryBuilder);
         $queryBuilder->expects($this->once())->method('where')
-            ->with('s.lastUsed < used')
+            ->with('s.lastUsed < :used')
             ->willReturn($queryBuilder);
         $queryBuilder->expects($this->once())->method('setParameter')
             ->with('used', $this->equalTo(time() - 10000, 1))
             ->willReturn($queryBuilder);
         $query = $this->getMockBuilder(\Doctrine\ORM\AbstractQuery::class)
             ->disableOriginalConstructor()
-            ->setMethods(['execute'])
+            ->onlyMethods(['execute'])
             ->getMockForAbstractClass();
         $query->expects($this->once())->method('execute')
             ->willReturn($this->anything());
