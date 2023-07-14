@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Table Definition for shortlinks
+ * LibGuidesResultsDeferred Recommendations Module
  *
  * PHP version 8
  *
- * Copyright (C) Villanova University 2019.
+ * Copyright (C) Villanova University 2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -21,44 +21,36 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * @category VuFind
- * @package  Db_Table
+ * @package  Recommendations
  * @author   Demian Katz <demian.katz@villanova.edu>
+ * @author   Maccabee Levine <msl321@lehigh.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org Main Site
+ * @link     https://vufind.org/wiki/development:plugins:recommendation_modules Wiki
  */
 
-namespace VuFind\Db\Table;
-
-use Laminas\Db\Adapter\Adapter;
-use VuFind\Db\Row\RowGateway;
+namespace VuFind\Recommend;
 
 /**
- * Table Definition for shortlinks
+ * LibGuidesResultsDeferred Recommendations Module
+ *
+ * This class sets up an AJAX call to trigger a call to the LibGuides module.
  *
  * @category VuFind
- * @package  Db_Table
+ * @package  Recommendations
  * @author   Demian Katz <demian.katz@villanova.edu>
+ * @author   Maccabee Levine <msl321@lehigh.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org Main Site
+ * @link     https://vufind.org/wiki/development:plugins:recommendation_modules Wiki
  */
-class Shortlinks extends Gateway
+class LibGuidesResultsDeferred extends AbstractSearchObjectDeferred
 {
     /**
-     * Constructor
+     * Store the configuration of the recommendation module.
      *
-     * @param Adapter       $adapter Database adapter
-     * @param PluginManager $tm      Table manager
-     * @param array         $cfg     Laminas configuration
-     * @param RowGateway    $rowObj  Row prototype object (null for default)
-     * @param string        $table   Name of database table to interface with
+     * @return string Module name in call to AjaxHandler
      */
-    public function __construct(
-        Adapter $adapter,
-        PluginManager $tm,
-        $cfg,
-        ?RowGateway $rowObj = null,
-        $table = 'shortlinks'
-    ) {
-        parent::__construct($adapter, $tm, $cfg, $rowObj, $table);
+    protected function getAjaxModule()
+    {
+        return 'LibGuidesResults';
     }
 }

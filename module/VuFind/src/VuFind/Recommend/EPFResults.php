@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Row Definition for shortlinks
+ * EPFResults Recommendations Module
  *
  * PHP version 8
  *
- * Copyright (C) Villanova University 2019.
+ * Copyright (C) Villanova University 2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -21,32 +21,36 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * @category VuFind
- * @package  Db_Row
+ * @package  Recommendations
  * @author   Demian Katz <demian.katz@villanova.edu>
+ * @author   Maccabee Levine <msl321@lehigh.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org Main Site
+ * @link     https://vufind.org/wiki/development:plugins:recommendation_modules Wiki
  */
 
-namespace VuFind\Db\Row;
+namespace VuFind\Recommend;
 
 /**
- * Row Definition for shortlinks
+ * EPFResults Recommendations Module
+ *
+ * This class provides recommendations by doing a search of EBSCO Publication Finder (EPF).
  *
  * @category VuFind
- * @package  Db_Row
+ * @package  Recommendations
  * @author   Demian Katz <demian.katz@villanova.edu>
+ * @author   Maccabee Levine <msl321@lehigh.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org Main Site
+ * @link     https://vufind.org/wiki/development:plugins:recommendation_modules Wiki
  */
-class Shortlinks extends RowGateway
+class EPFResults extends AbstractSearchObject
 {
     /**
-     * Constructor
+     * Get the search class ID to use for building search objects.
      *
-     * @param \Laminas\Db\Adapter\Adapter $adapter Database adapter
+     * @return string
      */
-    public function __construct($adapter)
+    protected function getSearchClassId()
     {
-        parent::__construct('id', 'shortlinks', $adapter);
+        return 'EPF';
     }
 }
