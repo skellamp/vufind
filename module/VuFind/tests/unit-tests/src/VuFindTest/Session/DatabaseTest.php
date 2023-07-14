@@ -54,7 +54,6 @@ class DatabaseTest extends \VuFindTest\Unit\SessionHandlerTestCase
         $session->expects($this->once())->method('readSession')
             ->with($this->equalTo('foo'), $this->equalTo(3600))
             ->will($this->returnValue('bar'));
-        $this->getServices()->set('Session', $session);
         $this->assertEquals('bar', $handler->read('foo'));
     }
 
@@ -72,7 +71,6 @@ class DatabaseTest extends \VuFindTest\Unit\SessionHandlerTestCase
         $session->expects($this->once())->method('readSession')
             ->with($this->equalTo('foo'), $this->equalTo(1000))
             ->will($this->returnValue('bar'));
-        $this->getServices()->set('Session', $session);
         $this->assertEquals('bar', $handler->read('foo'));
     }
 
@@ -87,7 +85,6 @@ class DatabaseTest extends \VuFindTest\Unit\SessionHandlerTestCase
         $session = $this->getMockSessionService();
         $session->expects($this->once())->method('garbageCollect')
             ->with($this->equalTo(3600));
-        $this->getServices()->set('Session', $session);
         $this->assertTrue($handler->gc(3600));
     }
 
@@ -102,7 +99,6 @@ class DatabaseTest extends \VuFindTest\Unit\SessionHandlerTestCase
         $session = $this->getMockSessionService();
         $session->expects($this->once())->method('writeSession')
             ->with($this->equalTo('foo'), $this->equalTo('stuff'));
-        $this->getServices()->set('Session', $session);
         $this->assertTrue($handler->write('foo', 'stuff'));
     }
 
@@ -118,7 +114,6 @@ class DatabaseTest extends \VuFindTest\Unit\SessionHandlerTestCase
         $session = $this->getMockSessionService();
         $session->expects($this->once())->method('destroySession')
             ->with($this->equalTo('foo'));
-        $this->services->set('Session', $session);
         $this->assertTrue($handler->destroy('foo'));
     }
 
