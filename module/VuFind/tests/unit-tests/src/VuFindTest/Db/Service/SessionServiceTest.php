@@ -341,7 +341,7 @@ class SessionServiceTest extends \PHPUnit\Framework\TestCase
             ->with('s.lastUsed < :used')
             ->willReturn($queryBuilder);
         $queryBuilder->expects($this->once())->method('setParameter')
-            ->with('used', $this->equalTo(time() - 10000, 1))
+            ->with('used', $this->equalToWithDelta(time() - 10000, 1))
             ->willReturn($queryBuilder);
         $query = $this->getMockBuilder(\Doctrine\ORM\AbstractQuery::class)
             ->disableOriginalConstructor()
