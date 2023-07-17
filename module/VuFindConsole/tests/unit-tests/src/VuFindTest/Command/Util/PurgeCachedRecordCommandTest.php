@@ -86,7 +86,7 @@ class PurgeCachedRecordCommandTest extends \PHPUnit\Framework\TestCase
         )
             ->disableOriginalConstructor()->getMock();
         $recordService->expects($this->once())->method('deleteRecord')
-            ->with($this->equalTo('Solr'), $this->equalTo('123'))
+            ->with($this->equalTo('123'), $this->equalTo('Solr'))
             ->willReturn($recordRetVal);
 
         $resourceTable = $this->getMockBuilder(\VuFind\Db\Table\Resource::class)
