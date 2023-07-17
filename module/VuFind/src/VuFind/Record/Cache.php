@@ -91,10 +91,10 @@ class Cache implements \Laminas\Log\LoggerAwareInterface
     public function __construct(
         RecordFactory $recordFactoryManager,
         Config $config,
-        RecordService $service
+        RecordService $recordService
     ) {
         $this->cacheConfig = $config;
-        $this->recordService = $service;
+        $this->recordService = $recordService;
         $this->recordFactoryManager = $recordFactoryManager;
 
         $this->setContext(Cache::CONTEXT_DEFAULT);
