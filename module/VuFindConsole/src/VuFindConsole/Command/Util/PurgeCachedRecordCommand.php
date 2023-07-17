@@ -120,7 +120,7 @@ class PurgeCachedRecordCommand extends Command
     {
         $source = $input->getArgument('source');
         $id = $input->getArgument('id');
-        if ($this->recordService->deleteRecord($source, $id)) {
+        if ($this->recordService->deleteRecord($id, $source)) {
             $output->writeln('Cached record deleted');
         } else {
             $output->writeln('No cached record found');

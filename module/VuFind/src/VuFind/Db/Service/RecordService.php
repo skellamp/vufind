@@ -148,15 +148,13 @@ class RecordService extends AbstractService implements LoggerAwareInterface
     /**
      * Delete a record by source and id
      *
-     * @param string $source Record source
      * @param string $id     Record ID
+     * @param string $source Record source
      *
      * @return mixed
      */
-    public function deleteRecord($source, $id)
+    public function deleteRecord($id, $source)
     {
-        $this->logError($id);
-        $this->logError($source);
         $dql = "DELETE FROM " . $this->getEntityClass(Record::class) . " r "
             . "WHERE r.recordId = :id AND r.source = :source";
         $parameters = compact('id', 'source');
