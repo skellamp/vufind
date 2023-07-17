@@ -194,6 +194,16 @@ class Record implements EntityInterface
     }
 
     /**
+     * Get record version.
+     *
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        return $this->version;
+    }
+
+    /**
      * Updated setter.
      *
      * @param Datetime $dateTime updated date
@@ -204,5 +214,15 @@ class Record implements EntityInterface
     {
         $this->updated = $dateTime;
         return $this;
+    }
+
+    /**
+     * Get record updation date.
+     *
+     * @return DateTime
+     */
+    public function getUpdated(): DateTime
+    {
+        return $this->updated;
     }
 }
