@@ -51,7 +51,7 @@ class OaiResumptionService extends AbstractService implements LoggerAwareInterfa
      *
      * @return void
      */
-    public function removeExpired()
+    public function removeExpired(): void
     {
         $dql = "DELETE FROM " . $this->getEntityClass(OaiResumption::class) . " O "
             . "WHERE O.expires <= :now";
@@ -67,9 +67,9 @@ class OaiResumptionService extends AbstractService implements LoggerAwareInterfa
      *
      * @param string $token The resumption token to retrieve.
      *
-     * @return OaiResumption|null
+     * @return ?OaiResumption
      */
-    public function findToken($token)
+    public function findToken($token): ?OaiResumption
     {
         $dql = "SELECT O "
         . "FROM " . $this->getEntityClass(OaiResumption::class) . " O "
@@ -89,10 +89,10 @@ class OaiResumptionService extends AbstractService implements LoggerAwareInterfa
      *
      * @return int          ID of new token
      */
-    public function saveToken($params, $expire)
+    public function saveToken($params, $expire): int
     {
         $row = $this->createEntity()
-            ->setResumptionParameters($this->saveParams($params))
+            ->setResumptionParameters($this->encodeParams($params))
             ->setExpiry(\DateTime::createFromFormat('U', $expire));
         try {
             $this->persistEntity($row);
@@ -101,26 +101,6 @@ class OaiResumptionService extends AbstractService implements LoggerAwareInterfa
             return false;
         }
         return $row->getId();
-    }
-
-    /**
-     * Extract an array of parameters from the object.
-     *
-     * @param OaiResumption $oaiEntity OaiResumption object
-     *
-     * @return array Original saved parameters.
-     */
-    public function restoreParams($oaiEntity)
-    {
-        $parts = explode('&', $oaiEntity->getResumptionParameters());
-        $params = [];
-        foreach ($parts as $part) {
-            [$key, $value] = explode('=', $part);
-            $key = urldecode($key);
-            $value = urldecode($value);
-            $params[$key] = $value;
-        }
-        return $params;
     }
 
     /**
@@ -141,13 +121,10 @@ class OaiResumptionService extends AbstractService implements LoggerAwareInterfa
      *
      * @return string
      */
-    public function saveParams($params)
+    public function encodeParams($params): string
     {
         ksort($params);
-        $processedParams = [];
-        foreach ($params as $key => $value) {
-            $processedParams[] = urlencode($key) . '=' . urlencode($value);
-        }
-        return implode('&', $processedParams);
+        $processedParams = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        return $processedParams;
     }
 }

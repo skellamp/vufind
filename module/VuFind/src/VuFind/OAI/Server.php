@@ -1257,7 +1257,8 @@ class Server
 
         // Load the requested token if it still exists:
         if ($row = $this->resumptionService->findToken($token)) {
-            return $this->resumptionService->restoreParams($row);
+            parse_str($row->getResumptionParameters(), $params);
+            return $params;
         }
 
         // If we got this far, the token is invalid or expired:
