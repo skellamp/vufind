@@ -179,6 +179,21 @@ class OaiResumptionServiceTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * Test encoding parameters (with unsorted keys, to confirm that ksort works).
+     *
+     * @return void
+     */
+    public function testEncodeParamsWithUnsortedKeys(): void
+    {
+        $entityManager = $this->getEntityManager();
+        $pluginManager = $this->getPluginManager();
+        $resumptionService = $this->getService($entityManager, $pluginManager);
+        $params = ['foo' => 'bar', 'cursorMark' => 100, 'cursor' => 20];
+        $queryString  = 'cursor=20&cursorMark=100&foo=bar';
+        $this->assertEquals($queryString, $resumptionService->encodeParams($params));
+    }
+
+    /**
      * Test saving a new token.
      *
      * @return void
