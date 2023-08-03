@@ -30,10 +30,10 @@
 namespace VuFind\Db\Service;
 
 use Doctrine\ORM\EntityManager;
-use VuFind\Db\Entity\PluginManager as EntityPluginManager;
-use VuFind\Db\Entity\User;
 use Laminas\Crypt\BlockCipher as BlockCipher;
 use Laminas\Crypt\Symmetric\Openssl;
+use VuFind\Db\Entity\PluginManager as EntityPluginManager;
+use VuFind\Db\Entity\User;
 
 /**
  * Database service for user.

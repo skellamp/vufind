@@ -291,8 +291,9 @@ class User extends RowGateway implements
     public function changeHomeLibrary($homeLibrary)
     {
         $this->home_library = $homeLibrary;
+        $rowsAffected = $this->save();
         $this->updateLibraryCardEntry();
-        return $this->save();
+        return $rowsAffected;
     }
 
     /**

@@ -317,12 +317,12 @@ class User implements EntityInterface
     }
 
      /**
-     * Home library name setter
-     *
-     * @param ?string $homeLibrary Home Library
-     *
-     * @return User
-     */
+      * Home library name setter
+      *
+      * @param ?string $homeLibrary Home Library
+      *
+      * @return User
+      */
     public function setHomeLibrary(?string $homeLibrary): User
     {
         $this->homeLibrary = $homeLibrary;

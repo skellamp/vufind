@@ -30,6 +30,7 @@
 namespace VuFind\Db\Service;
 
 use Laminas\Log\LoggerAwareInterface;
+use VuFind\Db\Entity\User;
 use VuFind\Db\Entity\UserCard;
 use VuFind\Log\LoggerAwareTrait;
 
@@ -50,8 +51,9 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
     /**
      * Get all library cards associated with the user.
      *
-     * @param int|\VuFind\Db\Entity\User $user User object or identifier
-     * @param int                        $id   UserCard id
+     * @param int|User $user        User object or identifier
+     * @param ?int     $id          UserCard id
+     * @param ?string  $catUsername CatUsername
      *
      * @return array
      */
@@ -79,8 +81,8 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
     /**
      * Get library card data
      *
-     * @param int|\VuFind\Db\Entity\User $user User object or identifier
-     * @param int                        $id   Library card ID
+     * @param int|User $user User object or identifier
+     * @param int      $id   Library card ID
      *
      * @return UserCard|false Card data if found, false otherwise
      * @throws \VuFind\Exception\LibraryCard
@@ -100,12 +102,6 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
                 ->setUser($userVal)
                 ->setCatUsername('')
                 ->setCatPassword('');
-            try {
-                $this->persistEntity($row);
-            } catch (\Exception $e) {
-                $this->logError('Could not save UserCard: ' . $e->getMessage());
-                return false;
-            }
         } else {
             $row = current($this->getLibraryCards($user, $id));
 
@@ -130,7 +126,7 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
      *
      * @param int $id Library card ID
      *
-     * @return void|false
+     * @return UserCard|false
      * @throws \VuFind\Exception\LibraryCard
      */
     public function deleteLibraryCard($user, $id)
@@ -147,17 +143,18 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
             $this->logError('Could not delete UserCard: ' . $e->getMessage());
             return false;
         }
+        return $userCard;
     }
 
      /**
       * Save library card with the given information
       *
-      * @param int|\VuFind\Db\Entity\User $user     User object or identifier
-      * @param int                        $id       Card ID
-      * @param string                     $cardName Card name
-      * @param string                     $username Username
-      * @param string                     $password Password
-      * @param string                     $homeLib  Home Library
+      * @param int|User $user     User object or identifier
+      * @param int      $id       Card ID
+      * @param string   $cardName Card name
+      * @param string   $username Username
+      * @param string   $password Password
+      * @param string   $homeLib  Home Library
       *
       * @return UserCard|false
       * @throws \VuFind\Exception\LibraryCard
@@ -185,10 +182,9 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
             $userCard = current($this->getLibraryCards($user, $id));
         }
         if (empty($userCard)) {
-            $now  = new \DateTime();
             $userCard = $this->createEntity()
                 ->setUser($user)
-                ->setCreated($now);
+                ->setCreated(new \DateTime());
         }
         $userCard->setCardName($cardName);
         $userCard->setCatUsername($username);
@@ -217,17 +213,17 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
      * Verify that the current card information exists in user's library cards
      * (if enabled) and is up to date.
      *
-     * @param int|\VuFind\Db\Entity\User $user     User object or identifier
-     * 
+     * @param int|User $user User object or identifier
+     *
      * @return void|false
      * @throws \VuFind\Exception\PasswordSecurity
      */
-    protected function updateLibraryCardEntry($user)
+    public function updateLibraryCardEntry($user)
     {
         if (is_int($user)) {
             $user = $this->getDbService(\VuFind\Db\Service\UserService::class)
                 ->getUserById($user);
-        } 
+        }
 
         $userCard = current($this->getLibraryCards($user->getId(), null, $user->getCatUsername()));
         if (empty($userCard)) {

@@ -146,6 +146,9 @@ class UserCard implements EntityInterface
      */
     protected $user;
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         // Set the default value as a \DateTime object
@@ -156,9 +159,9 @@ class UserCard implements EntityInterface
     /**
      * Id getter
      *
-     * @return int
+     * @return ?int
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -315,10 +318,10 @@ class UserCard implements EntityInterface
     }
 
      /**
-     * Get saved time.
-     *
-     * @return DateTime
-     */
+      * Get saved time.
+      *
+      * @return DateTime
+      */
     public function getSaved(): DateTime
     {
         return $this->saved;
