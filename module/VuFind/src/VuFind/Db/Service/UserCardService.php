@@ -124,7 +124,8 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
     /**
      * Delete library card
      *
-     * @param int $id Library card ID
+     * @param int|User $user User object or identifier
+     * @param int      $id   Library card ID
      *
      * @return UserCard|false
      * @throws \VuFind\Exception\LibraryCard
@@ -146,19 +147,19 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
         return $userCard;
     }
 
-     /**
-      * Save library card with the given information
-      *
-      * @param int|User $user     User object or identifier
-      * @param int      $id       Card ID
-      * @param string   $cardName Card name
-      * @param string   $username Username
-      * @param string   $password Password
-      * @param string   $homeLib  Home Library
-      *
-      * @return UserCard|false
-      * @throws \VuFind\Exception\LibraryCard
-      */
+    /**
+     * Save library card with the given information
+     *
+     * @param int|User $user     User object or identifier
+     * @param int      $id       Card ID
+     * @param string   $cardName Card name
+     * @param string   $username Username
+     * @param string   $password Password
+     * @param string   $homeLib  Home Library
+     *
+     * @return UserCard|false
+     * @throws \VuFind\Exception\LibraryCard
+     */
     public function saveLibraryCard(
         $user,
         $id,
