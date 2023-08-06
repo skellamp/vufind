@@ -91,15 +91,13 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
     {
         if ($id === null) {
             if (is_int($user)) {
-                $userVal = $this->getDbService(\VuFind\Db\Service\UserService::class)
+                $user = $this->getDbService(\VuFind\Db\Service\UserService::class)
                     ->getUserById($user);
-            } else {
-                $userVal = $user;
             }
 
             $row = $this->createEntity()
                 ->setCardName('')
-                ->setUser($userVal)
+                ->setUser($user)
                 ->setCatUsername('')
                 ->setCatPassword('');
         } else {
@@ -124,16 +122,13 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
     /**
      * Delete library card
      *
-     * @param int|User $user User object or identifier
-     * @param int      $id   Library card ID
+     * @param ?UserCard $userCard UserCard to be deleted
      *
-     * @return UserCard|false
+     * @return void|false
      * @throws \VuFind\Exception\LibraryCard
      */
-    public function deleteLibraryCard($user, $id)
+    public function deleteLibraryCard($userCard)
     {
-        $userCard = current($this->getLibraryCards($user, $id));
-
         if (empty($userCard)) {
             throw new \Exception('Library card not found');
         }
@@ -144,7 +139,6 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
             $this->logError('Could not delete UserCard: ' . $e->getMessage());
             return false;
         }
-        return $userCard;
     }
 
     /**

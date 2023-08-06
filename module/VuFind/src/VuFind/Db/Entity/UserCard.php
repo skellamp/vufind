@@ -334,7 +334,7 @@ class UserCard implements EntityInterface
      *
      * @return UserCard
      */
-    public function setUser(?User $user): UserCard
+    public function setUser(User $user): UserCard
     {
         $this->user = $user;
         return $this;
@@ -345,7 +345,7 @@ class UserCard implements EntityInterface
      *
      * @return User
      */
-    public function getUser()
+    public function getUser(): User
     {
         return $this->user;
     }

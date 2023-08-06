@@ -140,7 +140,7 @@ class UserService extends AbstractService
             return $text;
         }
 
-        $configAuth = $this->config->Authentication;
+        $configAuth = $this->config->Authentication ?? new \Laminas\Config\Config([]);
 
         // Load encryption key from configuration if not already present:
         if ($this->encryptionKey === null) {
