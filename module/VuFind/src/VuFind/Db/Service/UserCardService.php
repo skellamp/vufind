@@ -124,7 +124,7 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
      *
      * @param ?UserCard $userCard UserCard to be deleted
      *
-     * @return void|false
+     * @return bool
      * @throws \VuFind\Exception\LibraryCard
      */
     public function deleteLibraryCard($userCard)
@@ -139,6 +139,7 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
             $this->logError('Could not delete UserCard: ' . $e->getMessage());
             return false;
         }
+        return true;
     }
 
     /**
@@ -210,7 +211,7 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
      *
      * @param int|User $user User object or identifier
      *
-     * @return void|false
+     * @return bool
      * @throws \VuFind\Exception\PasswordSecurity
      */
     public function updateLibraryCardEntry($user)
@@ -237,6 +238,7 @@ class UserCardService extends AbstractService implements LoggerAwareInterface, \
             $this->logError('Could not update UserCard: ' . $e->getMessage());
             return false;
         }
+        return true;
     }
 
     /**
