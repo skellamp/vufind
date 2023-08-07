@@ -60,6 +60,7 @@ class ChangeTrackerService extends AbstractService implements
      */
     public function retrieve($core, $id)
     {
+        $this->logError('I AM IN HERE 1');
         $dql = "SELECT c "
             . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
             . "WHERE c.core = :core AND c.id = :id";
@@ -81,14 +82,15 @@ class ChangeTrackerService extends AbstractService implements
      */
     public function retrieveDeletedCount($core, $from, $until)
     {
-        $dql = "SELECT COUNT(c) as count "
+        $this->logError('I AM IN HERE 2');
+        $dql = "SELECT COUNT(c) as deletedcount "
             . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
-            . "WHERE c.core = :core AND c.deleted BETWEEN from AND until";
+            . "WHERE c.core = :core AND c.deleted BETWEEN :from AND :until";
         $parameters = compact('core', 'from', 'until');
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         $result = $query->getResult();
-        return current($result)['count'];
+        return current($result)['deletedcount'];
     }
 
     /**
@@ -109,9 +111,10 @@ class ChangeTrackerService extends AbstractService implements
         $offset = 0,
         $limit = null
     ) {
+        $this->logError('I AM IN HERE 3');
         $dql = "SELECT c "
             . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
-            . "WHERE c.core = :core AND c.deleted BETWEEN from AND until "
+            . "WHERE c.core = :core AND c.deleted BETWEEN :from AND :until "
             . "ORDER BY c.deleted";
         $parameters = compact('core', 'from', 'until');
         $query = $this->entityManager->createQuery($dql);
@@ -135,6 +138,7 @@ class ChangeTrackerService extends AbstractService implements
      */
     public function retrieveOrCreate($core, $id)
     {
+        $this->logError('I AM IN HERE 4');
         $row = $this->retrieve($core, $id);
         if (empty($row)) {
             $now = new \DateTime('now', new \DateTimeZone('UTC'));
@@ -165,6 +169,7 @@ class ChangeTrackerService extends AbstractService implements
      */
     public function markDeleted($core, $id)
     {
+        $this->logError('I AM IN HERE 5');
         // Get a row matching the specified details:
         $row = $this->retrieveOrCreate($core, $id);
 
@@ -200,6 +205,7 @@ class ChangeTrackerService extends AbstractService implements
      */
     public function index($core, $id, $change)
     {
+        $this->logError('I AM IN HERE 6');
         // Get a row matching the specified details:
         $row = $this->retrieveOrCreate($core, $id);
 
