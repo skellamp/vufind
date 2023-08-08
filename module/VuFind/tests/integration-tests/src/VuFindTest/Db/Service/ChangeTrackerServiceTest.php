@@ -1,11 +1,11 @@
 <?php
 
 /**
- * ChangeTracker Test Class
+ * ChangeTrackerService Test Class
  *
  * PHP version 8
  *
- * Copyright (C) Villanova University 2010.
+ * Copyright (C) Villanova University 2010-2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -27,12 +27,12 @@
  * @link     https://vufind.org/wiki/development:testing:unit_tests Wiki
  */
 
-namespace VuFindTest\Db\Table;
+namespace VuFindTest\Db\Service;
 
-use VuFind\Db\Table\ChangeTracker;
+use VuFind\Db\Service\ChangeTrackerService;
 
 /**
- * ChangeTracker Test Class
+ * ChangeTrackerService Test Class
  *
  * Class must be final due to use of "new static()" by LiveDatabaseTrait.
  *
@@ -42,7 +42,7 @@ use VuFind\Db\Table\ChangeTracker;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:testing:unit_tests Wiki
  */
-final class ChangeTrackerTest extends \PHPUnit\Framework\TestCase
+final class ChangeTrackerServiceTest extends \PHPUnit\Framework\TestCase
 {
     use \VuFindTest\Feature\LiveDatabaseTrait;
     use \VuFindTest\Feature\LiveDetectionTrait;
@@ -69,7 +69,7 @@ final class ChangeTrackerTest extends \PHPUnit\Framework\TestCase
     public function testChangeTracker()
     {
         $core = 'testCore';
-        $tracker = $this->getTable(ChangeTracker::class);
+        $tracker = $this->getDatabaseService(ChangeTrackerService::class);
 
         // Create a new row:
         $tracker->index($core, 'test1', 1326833170);
