@@ -66,7 +66,7 @@ class Writer
     /**
      * Constructor
      *
-     * @param Service       $service Search service
+     * @param Service              $service Search service
      * @param ChangeTrackerService $tracker Change tracker database service
      */
     public function __construct(Service $service, ChangeTrackerService $tracker)

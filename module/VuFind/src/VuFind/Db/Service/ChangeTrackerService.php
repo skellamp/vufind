@@ -94,7 +94,7 @@ class ChangeTrackerService extends AbstractService implements
     }
 
     /**
-     * Retrieve a set of deleted rows from the database.                                                 
+     * Retrieve a set of deleted rows from the database.
      *
      * @param string $core   The Solr core holding the record.
      * @param string $from   The beginning date of the range to search.

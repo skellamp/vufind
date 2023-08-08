@@ -52,12 +52,12 @@ class VuFindTest extends \PHPUnit\Framework\TestCase
     protected function getMockContainer()
     {
         $container = new \VuFindTest\Container\MockContainer($this);
-        $tableManager = new \VuFindTest\Container\MockDbTablePluginManager($this);
-        $tableManager->set(
+        $serviceManager = new \VuFindTest\Container\MockDbServicePluginManager($this);
+        $serviceManager->set(
             'ChangeTracker',
-            $tableManager->get(\VuFind\Db\Table\ChangeTracker::class)
+            $serviceManager->get(\VuFind\Db\Service\ChangeTrackerService::class)
         );
-        $container->set(\VuFind\Db\Table\PluginManager::class, $tableManager);
+        $container->set(\VuFind\Db\Service\PluginManager::class, $serviceManager);
         return $container;
     }
 
@@ -70,7 +70,7 @@ class VuFindTest extends \PHPUnit\Framework\TestCase
     {
         VuFind::setServiceLocator($this->getMockContainer());
         $this->assertTrue(
-            VuFind::getChangeTracker() instanceof \VuFind\Db\Table\ChangeTracker
+            VuFind::getChangeTracker() instanceof \VuFind\Db\Service\ChangeTrackerService
         );
     }
 

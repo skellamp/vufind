@@ -78,7 +78,7 @@ class ServerTest extends \PHPUnit\Framework\TestCase
         $server = new Server(
             $this->getMockResultsManager(),
             $this->getMockRecordLoader(),
-            $this->getMockTableManager(),
+            $this->getMockChangeTracker(),
             $this->getMockResumptionService()
         );
         $server->setRecordFormatter($this->getMockRecordFormatter());
@@ -110,13 +110,13 @@ class ServerTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Get a mock table manager
+     * Get a mock change tracker service
      *
-     * @return \VuFind\Db\Table\PluginManager
+     * @return \VuFind\Db\Service\ChangeTrackerService
      */
-    protected function getMockTableManager()
+    protected function getMockChangeTracker()
     {
-        return $this->getMockBuilder(\VuFind\Db\Table\PluginManager::class)
+        return $this->getMockBuilder(\VuFind\Db\Service\ChangeTrackerService::class)
             ->disableOriginalConstructor()
             ->getMock();
     }

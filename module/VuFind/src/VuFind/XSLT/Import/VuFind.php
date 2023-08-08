@@ -64,9 +64,9 @@ class VuFind
     }
 
     /**
-     * Get the change tracker table object.
+     * Get the change tracker service object.
      *
-     * @return \VuFind\Db\Table\ChangeTracker
+     * @return \VuFind\Db\Service\ChangeTrackerService
      */
     public static function getChangeTracker()
     {
