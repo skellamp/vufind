@@ -42,9 +42,7 @@ use VuFind\Log\LoggerAwareTrait;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-class ChangeTrackerService extends AbstractService implements
-    \VuFind\Db\Service\ServiceAwareInterface,
-    LoggerAwareInterface
+class ChangeTrackerService extends AbstractService implements LoggerAwareInterface
 {
     use \VuFind\Db\Service\ServiceAwareTrait;
     use LoggerAwareTrait;
@@ -251,12 +249,12 @@ class ChangeTrackerService extends AbstractService implements
     /**
      * Remove all or selected rows from the database.
      *
-     * @param ?string $core   The Solr core holding the record.
-     * @param ?string $id     The ID of the record being indexed.
-     * 
+     * @param ?string $core The Solr core holding the record.
+     * @param ?string $id   The ID of the record being indexed.
+     *
      * @return void
      */
-    public function deleteRows(?string $core, ?string $id ): void
+    public function deleteRows(?string $core = null, ?string $id = null): void
     {
         $dql = "DELETE FROM " . $this->getEntityClass(ChangeTracker::class) . " c ";
         $parameters = $dqlWhere = [];

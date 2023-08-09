@@ -77,7 +77,8 @@ final class ChangeTrackerServiceTest extends \PHPUnit\Framework\TestCase
         $this->assertIsObject($row);
         $this->assertEmpty($row->getDeleted());
         $this->assertEquals($row->getFirstIndexed(), $row->getLastIndexed());
-        $this->assertEquals($row->getLastRecordChange(), 
+        $this->assertEquals(
+            $row->getLastRecordChange(),
             \DateTime::createFromFormat('Y-m-d H:i:s', '2012-01-17 20:46:10')
         );
 
@@ -87,7 +88,8 @@ final class ChangeTrackerServiceTest extends \PHPUnit\Framework\TestCase
         $this->assertIsObject($row);
         $this->assertEmpty($row->getDeleted());
         $this->assertEquals($row->getFirstIndexed(), $row->getLastIndexed());
-        $this->assertEquals($row->getLastRecordChange(), 
+        $this->assertEquals(
+            $row->getLastRecordChange(),
             \DateTime::createFromFormat('Y-m-d H:i:s', '2012-01-17 20:46:10')
         );
         $previousFirstIndexed = $row->getFirstIndexed();
@@ -104,7 +106,8 @@ final class ChangeTrackerServiceTest extends \PHPUnit\Framework\TestCase
             // use <= in case test runs too fast for values to become unequal:
             $row->getFirstIndexed() <= $row->getLastIndexed()
         );
-        $this->assertEquals($row->getLastRecordChange(), 
+        $this->assertEquals(
+            $row->getLastRecordChange(),
             \DateTime::createFromFormat('Y-m-d H:i:s', '2012-01-17 20:46:16')
         );
 
@@ -128,7 +131,8 @@ final class ChangeTrackerServiceTest extends \PHPUnit\Framework\TestCase
         $row = $tracker->retrieve($core, 'test2');
         $this->assertIsObject($row);
         $this->assertEmpty($row->getDeleted());
-        $this->assertEquals($row->getLastRecordChange(), 
+        $this->assertEquals(
+            $row->getLastRecordChange(),
             \DateTime::createFromFormat('Y-m-d H:i:s', '2012-01-17 20:46:10')
         );
 
