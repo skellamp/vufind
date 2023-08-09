@@ -44,7 +44,6 @@ use VuFind\Log\LoggerAwareTrait;
  */
 class ChangeTrackerService extends AbstractService implements LoggerAwareInterface
 {
-    use \VuFind\Db\Service\ServiceAwareTrait;
     use LoggerAwareTrait;
 
     /**
