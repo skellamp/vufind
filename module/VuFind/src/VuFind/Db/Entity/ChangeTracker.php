@@ -121,7 +121,7 @@ class ChangeTracker implements EntityInterface
      */
     public function setId(string $id): ChangeTracker
     {
-        $this->core = $id;
+        $this->id = $id;
         return $this;
     }
 
