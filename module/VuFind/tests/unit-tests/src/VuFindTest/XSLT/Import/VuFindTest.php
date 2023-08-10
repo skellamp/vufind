@@ -53,10 +53,6 @@ class VuFindTest extends \PHPUnit\Framework\TestCase
     {
         $container = new \VuFindTest\Container\MockContainer($this);
         $serviceManager = new \VuFindTest\Container\MockDbServicePluginManager($this);
-        $serviceManager->set(
-            'ChangeTracker',
-            $serviceManager->get(\VuFind\Db\Service\ChangeTrackerService::class)
-        );
         $container->set(\VuFind\Db\Service\PluginManager::class, $serviceManager);
         return $container;
     }

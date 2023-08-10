@@ -53,9 +53,9 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      * @param string $core The Solr core holding the record.
      * @param string $id   The ID of the record being indexed.
      *
-     * @return ChangeTracker|null
+     * @return ?ChangeTracker
      */
-    public function retrieve($core, $id)
+    public function retrieve(string $core, string $id): ?ChangeTracker
     {
         $dql = "SELECT c "
             . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
@@ -76,7 +76,7 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      *
      * @return int
      */
-    public function retrieveDeletedCount($core, $from, $until)
+    public function retrieveDeletedCount(string $core, string $from, string $until): int
     {
         $dql = "SELECT COUNT(c) as deletedcount "
             . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
@@ -100,12 +100,12 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      * @return array
      */
     public function retrieveDeleted(
-        $core,
-        $from,
-        $until,
-        $offset = 0,
-        $limit = null
-    ) {
+        string $core,
+        string $from,
+        string $until,
+        int $offset = 0,
+        int $limit = null
+    ): array {
         $dql = "SELECT c "
             . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
             . "WHERE c.core = :core AND c.deleted BETWEEN :from AND :until "
@@ -130,7 +130,7 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      *
      * @return ChangeTracker|false
      */
-    public function retrieveOrCreate($core, $id)
+    public function retrieveOrCreate(string $core, string $id): ChangeTracker|false
     {
         $row = $this->retrieve($core, $id);
         if (empty($row)) {
@@ -160,13 +160,13 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      *
      * @return ChangeTracker|false
      */
-    public function markDeleted($core, $id)
+    public function markDeleted(string $core, string $id): ChangeTracker|false
     {
         // Get a row matching the specified details:
         $row = $this->retrieveOrCreate($core, $id);
 
         // If the record is already deleted, we don't need to do anything!
-        if (!empty($row->getdeleted())) {
+        if (!empty($row->getDeleted())) {
             return $row;
         }
 
@@ -193,9 +193,9 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      * @param string $id     The ID of the record being indexed.
      * @param int    $change The timestamp of the last record change.
      *
-     * @return ChangeTracker
+     * @return ChangeTracker|false
      */
-    public function index($core, $id, $change)
+    public function index(string $core, string $id, int $change): ChangeTracker|false
     {
         // Get a row matching the specified details:
         $row = $this->retrieveOrCreate($core, $id);
@@ -203,7 +203,7 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
         // Flag to indicate whether we need to save the contents of $row:
         $saveNeeded = false;
         $utcTime = \DateTime::createFromFormat('U', $change, new \DateTimeZone('UTC'));
-        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+
         // Make sure there is a change date in the row (this will be empty
         // if we just created a new row):
         if (empty($row->getLastRecordChange())) {
@@ -216,6 +216,7 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
         // we need to update the table!
         if (!empty($row->getDeleted()) || $row->getLastRecordChange() < $utcTime) {
             // Save new values to the object:
+            $now = new \DateTime('now', new \DateTimeZone('UTC'));
             $row->setLastIndexed($now);
             $row->setLastRecordChange($utcTime);
 

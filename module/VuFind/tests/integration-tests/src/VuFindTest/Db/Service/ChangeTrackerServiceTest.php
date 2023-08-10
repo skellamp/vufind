@@ -102,10 +102,7 @@ final class ChangeTrackerServiceTest extends \PHPUnit\Framework\TestCase
         $row = $tracker->retrieve($core, 'test1');
         $this->assertIsObject($row);
         $this->assertEmpty($row->getDeleted());
-        $this->assertTrue(
-            // use <= in case test runs too fast for values to become unequal:
-            $row->getFirstIndexed() <= $row->getLastIndexed()
-        );
+        $this->assertLessThan($row->getFirstIndexed(), $row->getLastIndexed());
         $this->assertEquals(
             $row->getLastRecordChange(),
             \DateTime::createFromFormat('Y-m-d H:i:s', '2012-01-17 20:46:16')
@@ -118,7 +115,7 @@ final class ChangeTrackerServiceTest extends \PHPUnit\Framework\TestCase
         $tracker->markDeleted($core, 'test1');
         $row = $tracker->retrieve($core, 'test1');
         $this->assertIsObject($row);
-        $this->assertTrue(!empty($row->getDeleted()));
+        $this->assertNotEmpty($row->getDeleted());
 
         // Delete a record that hasn't previously been encountered:
         $tracker->markDeleted($core, 'test2');

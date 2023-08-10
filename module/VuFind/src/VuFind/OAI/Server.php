@@ -1000,7 +1000,7 @@ class Server
         return $this->tracker->retrieveDeletedCount(
             $this->core,
             \DateTime::createFromFormat('U', $from, new \DateTimeZone('UTC')),
-            \DateTime::createFromFormat('U', $until, new \DateTimeZone('UTC')),
+            \DateTime::createFromFormat('U', $until, new \DateTimeZone('UTC'))
         );
     }
 
