@@ -54,9 +54,9 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      * @param string $core The Solr core holding the record.
      * @param string $id   The ID of the record being indexed.
      *
-     * @return ?ChangeTracker
+     * @return ChangeTracker|false
      */
-    public function retrieve(string $core, string $id): ?ChangeTracker
+    public function retrieve(string $core, string $id): ChangeTracker|false
     {
         $dql = "SELECT c "
             . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
