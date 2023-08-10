@@ -29,6 +29,7 @@
 
 namespace VuFind\Db\Service;
 
+use DateTime;
 use Laminas\Log\LoggerAwareInterface;
 use VuFind\Db\Entity\ChangeTracker;
 use VuFind\Log\LoggerAwareTrait;
@@ -70,13 +71,13 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
     /**
      * Retrieve a set of deleted rows from the database.
      *
-     * @param string $core  The Solr core holding the record.
-     * @param string $from  The beginning date of the range to search.
-     * @param string $until The end date of the range to search.
+     * @param string   $core  The Solr core holding the record.
+     * @param DateTime $from  The beginning date of the range to search.
+     * @param DateTime $until The end date of the range to search.
      *
      * @return int
      */
-    public function retrieveDeletedCount(string $core, string $from, string $until): int
+    public function retrieveDeletedCount(string $core, DateTime $from, DateTime $until): int
     {
         $dql = "SELECT COUNT(c) as deletedcount "
             . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
@@ -91,18 +92,18 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
     /**
      * Retrieve a set of deleted rows from the database.
      *
-     * @param string $core   The Solr core holding the record.
-     * @param string $from   The beginning date of the range to search.
-     * @param string $until  The end date of the range to search.
-     * @param int    $offset Record number to retrieve first.
-     * @param int    $limit  Retrieval limit (null for no limit)
+     * @param string   $core   The Solr core holding the record.
+     * @param DateTime $from   The beginning date of the range to search.
+     * @param DateTime $until  The end date of the range to search.
+     * @param int      $offset Record number to retrieve first.
+     * @param int      $limit  Retrieval limit (null for no limit)
      *
      * @return array
      */
     public function retrieveDeleted(
         string $core,
-        string $from,
-        string $until,
+        DateTime $from,
+        DateTime $until,
         int $offset = 0,
         int $limit = null
     ): array {
