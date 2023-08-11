@@ -55,7 +55,6 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         'session' => Session::class,
         'tags' => Tags::class,
         'user' => User::class,
-        'usercard' => UserCard::class,
         'userlist' => UserList::class,
         'userresource' => UserResource::class,
     ];
@@ -76,7 +75,6 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         Session::class => GatewayFactory::class,
         Tags::class => CaseSensitiveTagsFactory::class,
         User::class => UserFactory::class,
-        UserCard::class => GatewayFactory::class,
         UserList::class => UserListFactory::class,
         UserResource::class => GatewayFactory::class,
     ];
