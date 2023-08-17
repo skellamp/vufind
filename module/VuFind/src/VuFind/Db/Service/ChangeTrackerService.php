@@ -58,9 +58,9 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      */
     public function retrieve(string $core, string $id): ChangeTracker|false
     {
-        $dql = "SELECT c "
-            . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
-            . "WHERE c.core = :core AND c.id = :id";
+        $dql = 'SELECT c '
+            . 'FROM ' . $this->getEntityClass(ChangeTracker::class) . ' c '
+            . 'WHERE c.core = :core AND c.id = :id';
         $parameters = compact('core', 'id');
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
@@ -79,9 +79,9 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      */
     public function retrieveDeletedCount(string $core, DateTime $from, DateTime $until): int
     {
-        $dql = "SELECT COUNT(c) as deletedcount "
-            . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
-            . "WHERE c.core = :core AND c.deleted BETWEEN :from AND :until";
+        $dql = 'SELECT COUNT(c) as deletedcount '
+            . 'FROM ' . $this->getEntityClass(ChangeTracker::class) . ' c '
+            . 'WHERE c.core = :core AND c.deleted BETWEEN :from AND :until';
         $parameters = compact('core', 'from', 'until');
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
@@ -107,10 +107,10 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
         int $offset = 0,
         int $limit = null
     ): array {
-        $dql = "SELECT c "
-            . "FROM " . $this->getEntityClass(ChangeTracker::class) . " c "
-            . "WHERE c.core = :core AND c.deleted BETWEEN :from AND :until "
-            . "ORDER BY c.deleted";
+        $dql = 'SELECT c '
+            . 'FROM ' . $this->getEntityClass(ChangeTracker::class) . ' c '
+            . 'WHERE c.core = :core AND c.deleted BETWEEN :from AND :until '
+            . 'ORDER BY c.deleted';
         $parameters = compact('core', 'from', 'until');
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
@@ -257,14 +257,14 @@ class ChangeTrackerService extends AbstractService implements LoggerAwareInterfa
      */
     public function deleteRows(?string $core = null, ?string $id = null): void
     {
-        $dql = "DELETE FROM " . $this->getEntityClass(ChangeTracker::class) . " c ";
+        $dql = 'DELETE FROM ' . $this->getEntityClass(ChangeTracker::class) . ' c ';
         $parameters = $dqlWhere = [];
         if (null !== $core) {
-            $dqlWhere[] = "c.core = :core";
+            $dqlWhere[] = 'c.core = :core';
             $parameters['core'] = $core;
         }
         if (null !== $id) {
-            $dqlWhere[] = "c.id = :id";
+            $dqlWhere[] = 'c.id = :id';
             $parameters['id'] = $id;
         }
         if (!empty($dqlWhere)) {
