@@ -100,7 +100,7 @@ class VuFind
     {
         $date = strtotime($date);
         $row = static::getChangeTracker()->index($core, $id, $date);
-        return $row->getFirstIndexed()->format('Y-m-d\TH:i:sP');
+        return $row->getFirstIndexed()->format('Y-m-d\TH:i:s\Z');
     }
 
     /**
@@ -117,7 +117,7 @@ class VuFind
         $date = strtotime($date);
         $row = static::getChangeTracker()->index($core, $id, $date);
         $iso8601 = 'Y-m-d\TH:i:s\Z';
-        return $row->getLastIndexed()->format('Y-m-d\TH:i:sP');
+        return $row->getLastIndexed()->format('Y-m-d\TH:i:s\Z');
     }
 
     /**
