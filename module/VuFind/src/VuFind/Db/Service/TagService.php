@@ -40,6 +40,9 @@ use VuFind\Db\Entity\User;
 use VuFind\Db\Entity\UserList;
 use VuFind\Log\LoggerAwareTrait;
 
+use function count;
+use function in_array;
+
 /**
  * Database service for tags.
  *
