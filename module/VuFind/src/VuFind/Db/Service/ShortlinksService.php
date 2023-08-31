@@ -176,9 +176,9 @@ class ShortlinksService extends AbstractService implements LoggerAwareInterface
     }
 
     /**
-     * Generate base62 encoding to migrate old shortlinks
+     * Generate base62 encoding to migrate old shortlinks and return total number of migrated links.
      *
-     * @return int
+     * @return int 
      */
     public function fixshortlinks()
     {

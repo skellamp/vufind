@@ -46,7 +46,6 @@ use VuFind\Config\Version;
 use VuFind\Config\Writer;
 use VuFind\Cookie\Container as CookieContainer;
 use VuFind\Cookie\CookieManager;
-use VuFind\Crypt\Base62;
 use VuFind\Date\Converter;
 use VuFind\Db\AdapterFactory;
 use VuFind\Exception\RecordMissing as RecordMissingException;
