@@ -209,7 +209,7 @@ class Resource extends Gateway implements \VuFind\Db\Service\ServiceAwareInterfa
                     $linkingTable = $this->getDbService(\VuFind\Db\Service\TagService::class);
                     foreach ($tags as $tag) {
                         $matches = $linkingTable
-                            ->getResourcesForTag($tag, $user, $list);
+                            ->getResourceIDsForTag($tag, $user, $list);
 
                         $s->where->in('resource.id', $matches);
                     }
@@ -245,18 +245,15 @@ class Resource extends Gateway implements \VuFind\Db\Service\ServiceAwareInterfa
             // Does the new ID already exist?
             if ($newResource = $this->findResource($newId, $source, false)) {
                 // Special case: merge new ID and old ID:
-                foreach (['comments', 'userresource', 'resourcetags'] as $table) {
-                    if ($table == 'resourcetags') {
-                        $tableObjects[$table] = $this->getDbService(\VuFind\Db\Service\TagService::class);
-                        $tableObjects[$table]->update($newResource->id, $resource->id);
-                    } else {
-                        $tableObjects[$table] = $this->getDbTable($table);
-                        $tableObjects[$table]->update(
-                            ['resource_id' => $newResource->id],
-                            ['resource_id' => $resource->id]
-                        );
-                    }
+                foreach (['comments', 'userresource'] as $table) {
+                    $tableObjects[$table] = $this->getDbTable($table);
+                    $tableObjects[$table]->update(
+                        ['resource_id' => $newResource->id],
+                        ['resource_id' => $resource->id]
+                    );
                 }
+                $tableObjects['tagService'] = $this->getDbService(\VuFind\Db\Service\TagService::class);
+                $tableObjects['tagService']->updateResource($newResource->id, $resource->id);
                 $resource->delete();
             } else {
                 // Default case: just update the record ID:
@@ -268,8 +265,8 @@ class Resource extends Gateway implements \VuFind\Db\Service\ServiceAwareInterfa
 
             // Deduplicate rows where necessary (this can be safely done outside
             // of the transaction):
-            if (isset($tableObjects['resourcetags'])) {
-                $tableObjects['resourcetags']->deduplicate();
+            if (isset($tableObjects['tagService'])) {
+                $tableObjects['tagService']->deduplicate();
             }
             if (isset($tableObjects['userresource'])) {
                 $tableObjects['userresource']->deduplicate();

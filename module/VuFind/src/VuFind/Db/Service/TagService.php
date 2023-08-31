@@ -42,6 +42,7 @@ use VuFind\Log\LoggerAwareTrait;
 
 use function count;
 use function in_array;
+use function is_object;
 
 /**
  * Database service for tags.
@@ -200,7 +201,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
      *
      * @return array
      */
-    public function getResourcesForTag($tag, $user, $list = null)
+    public function getResourceIDsForTag($tag, $user, $list = null)
     {
         $dql = 'SELECT DISTINCT(rt.resource) AS resource_id '
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
@@ -455,7 +456,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
     }
 
     /**
-     * Update reosurce.
+     * Update resource.
      *
      * @param int|Resource $newResource New resourceid.
      * @param int|User     $oldResource Old resourceid.
