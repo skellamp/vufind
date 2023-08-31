@@ -991,23 +991,12 @@ class UpgradeController extends AbstractBase
      */
     protected function fixshortlinks()
     {
-        $shortlinksTable = $this->getTable('shortlinks');
-        $base62 = new Base62();
-
         try {
-            $results = $shortlinksTable->select(['hash' => null]);
-
-            foreach ($results as $result) {
-                $id = $result['id'];
-                $shortlinksTable->update(
-                    ['hash' => $base62->encode($id)],
-                    ['id' => $id]
-                );
-            }
-
-            if (count($results) > 0) {
+            $shortlinksService = $this->getDbService(\VuFind\Db\Service\ShortlinksService::class);
+            $updateCount = $shortlinksService->fixshortlinks();
+            if ($updateCount > 0) {
                 $this->session->warnings->append(
-                    'Added hash value(s) to ' . count($results) . ' short links.'
+                    'Added hash value(s) to ' . $updateCount . ' short links.'
                 );
             }
         } catch (Exception $e) {
