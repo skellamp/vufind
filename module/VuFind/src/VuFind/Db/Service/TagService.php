@@ -191,9 +191,9 @@ class TagService extends AbstractService implements LoggerAwareInterface
     /**
      * Get resources associated with a particular tag.
      *
-     * @param string $tag    Tag to match
-     * @param string $userId ID of user owning favorite list
-     * @param string $listId ID of list to retrieve (null for all favorites)
+     * @param string $tag  Tag to match
+     * @param string $user ID of user owning favorite list
+     * @param string $list ID of list to retrieve (null for all favorites)
      *
      * @return array
      */
