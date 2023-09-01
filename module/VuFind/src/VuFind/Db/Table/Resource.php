@@ -245,16 +245,13 @@ class Resource extends Gateway implements \VuFind\Db\Service\ServiceAwareInterfa
             // Does the new ID already exist?
             if ($newResource = $this->findResource($newId, $source, false)) {
                 // Special case: merge new ID and old ID:
-                foreach (['comments', 'userresource'] as $table) {
+                foreach (['comments', 'userresource', 'resourcetags'] as $table) {
                     $tableObjects[$table] = $this->getDbTable($table);
                     $tableObjects[$table]->update(
                         ['resource_id' => $newResource->id],
                         ['resource_id' => $resource->id]
                     );
                 }
-                $tableObjects['tagService'] = $this->getDbService(\VuFind\Db\Service\TagService::class);
-                $tableObjects['tagService']->updateResource($newResource->id, $resource->id);
-                $resource->delete();
             } else {
                 // Default case: just update the record ID:
                 $resource->record_id = $newId;

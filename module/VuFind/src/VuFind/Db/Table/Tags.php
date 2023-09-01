@@ -519,26 +519,6 @@ class Tags extends Gateway implements \VuFind\Db\Service\ServiceAwareInterface
     }
 
     /**
-     * Delete a group of tags.
-     *
-     * @param array $ids IDs of tags to delete.
-     *
-     * @return void
-     */
-    public function deleteByIdArray($ids)
-    {
-        // Do nothing if we have no IDs to delete!
-        if (empty($ids)) {
-            return;
-        }
-
-        $callback = function ($select) use ($ids) {
-            $select->where->in('id', $ids);
-        };
-        $this->delete($callback);
-    }
-
-    /**
      * Get a list of duplicate tags (this should never happen, but past bugs
      * and the introduction of case-insensitive tags have introduced problems).
      *

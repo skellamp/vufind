@@ -421,59 +421,6 @@ class TagService extends AbstractService implements LoggerAwareInterface
     }
 
     /**
-     * Get a list of duplicate rows (this sometimes happens after merging IDs,
-     * for example after a Summon resource ID changes).
-     *
-     * @return array
-     */
-    public function getDuplicates()
-    {
-        $dql = 'SELECT MIN(rt.resource) as resource_id, MiN(rt.tag) as tag_id, MIN(rt.list) as list_id '
-            . 'MIN(rt.user) as user_id, COUNT(rt.resource) as cnt, MIN(rt.id) as id '
-            . 'FROM' . $this->getEntityClass(ResourceTags::class) . 'rt '
-            . 'GROUP BY rt.resource, rt.tag, rt.list, rt.user '
-            . 'HAVING COUNT(rt.resource) > 1';
-        $query = $this->entityManager->createQuery($dql);
-        $result = $query->getResult();
-        return $result;
-    }
-
-    /**
-     * Deduplicate rows (sometimes necessary after merging foreign key IDs).
-     *
-     * @return void
-     */
-    public function deduplicate()
-    {
-        foreach ($this->getDuplicates() as $dupe) {
-            $dql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
-                . 'WHERE rt.resource = :resource_id AND rt.list = :list_id AND rt.tag = :tag_id '
-                . 'AND rt.user = :user_id AND rt.id > :id';
-            $query = $this->entityManager->createQuery($dql);
-            $query->setParameters($dupe);
-            $query->execute();
-        }
-    }
-
-    /**
-     * Update resource.
-     *
-     * @param int|Resource $newResource New resourceid.
-     * @param int|User     $oldResource Old resourceid.
-     *
-     * @return void
-     */
-    public function updateResource($newResource, $oldResource)
-    {
-        $dql = 'UPDATE ' . $this->getEntityClass(ResourceTags::class) . ' rt '
-            . 'SET rt.resource = :newResource WHERE rt.resource = :oldResource';
-        $parameters = compact('newResource', 'oldResource');
-        $query = $this->entityManager->createQuery($dql);
-        $query->setParameters($parameters);
-        $query->execute();
-    }
-
-    /**
      * Remove links from the resource_tags table based on an array of IDs.
      *
      * @param string[] $ids Identifiers from resource_tags to delete.
