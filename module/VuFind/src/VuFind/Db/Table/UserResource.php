@@ -174,8 +174,8 @@ class UserResource extends Gateway implements \VuFind\Db\Service\ServiceAwareInt
         // Remove any tags associated with the links we are removing; we don't
         // want to leave orphaned tags in the resource_tags table after we have
         // cleared out favorites in user_resource!
-        $resourceTags = $this->getDbService(\VuFind\Db\Service\TagService::class);
-        $resourceTags->destroyResourceLinks($resource_id, $user_id, $list_id);
+        $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
+        $tagService->destroyResourceLinks($resource_id, $user_id, $list_id);
 
         // Now build the where clause to figure out which rows to remove:
         $callback = function ($select) use ($resource_id, $user_id, $list_id) {
@@ -187,7 +187,7 @@ class UserResource extends Gateway implements \VuFind\Db\Service\ServiceAwareInt
                 $select->where->in('resource_id', $resource_id);
             }
             // null or true values of $list_id have different meanings in the
-            // context of the $resourceTags->destroyResourceLinks() call above, since
+            // context of the $tagService->destroyResourceLinks() call above, since
             // some tags have a null $list_id value. In the case of user_resource
             // rows, however, every row has a non-null $list_id value, so the
             // two cases are equivalent and may be handled identically.

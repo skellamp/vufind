@@ -286,13 +286,12 @@ class TagService extends AbstractService implements LoggerAwareInterface
     /**
      * Unlink rows for the specified resource.
      *
-     * @param string|array $resource ID (or array of IDs) of resource(s) to
+     * @param string|array|null $resource ID (or array of IDs) of resource(s) to
      * unlink (null for ALL matching resources)
-     * @param string|User  $user     ID of user removing links
-     * @param mixed        $list     ID of list to unlink (null for ALL matching
-     *                               tags, 'none' for tags not in a list, true
-     *                               for tags only found in a list)
-     * @param string|array $tag      ID or array of IDs of tag(s) to unlink (null
+     * @param string|User       $user     ID of user removing links
+     * @param mixed             $list     ID of list to unlink (null for ALL matching
+     * tags, 'none' for tags not in a list, true for tags only found in a list)
+     * @param string|array|null $tag      ID or array of IDs of tag(s) to unlink (null
      * for ALL matching tags)
      *
      * @return void
@@ -301,9 +300,8 @@ class TagService extends AbstractService implements LoggerAwareInterface
     {
         $dql = 'SELECT rt FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt ';
 
-        $parameters = $dqlWhere = [];
-        $dqlWhere[] = ' rt.user = :user ';
-        $parameters['user'] = $user;
+        $dqlWhere = ['rt.user = :user '];
+        $parameters = ['user' => $user];
         if (null !== $resource) {
             $dqlWhere[] = 'rt.resource IN (:resource) ';
             $parameters['resource'] = (array)$resource;
@@ -381,7 +379,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
                 throw $e;
             }
 
-        // Check for orphans:
+            // Check for orphans:
             $checkResults = $this->checkForTags(array_unique($ids));
             if (count($checkResults['missing']) > 0) {
                 $this->deleteByIdArray($checkResults['missing']);
