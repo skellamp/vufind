@@ -223,7 +223,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
     }
 
     /**
-     * Get lists associated with a particular tag.
+     * Get IDs of lists associated with a particular tag.
      *
      * @param string|array      $tag        Tag to match
      * @param null|string|array $listId     List ID to retrieve (null for all)
@@ -244,7 +244,9 @@ class TagService extends AbstractService implements LoggerAwareInterface
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'JOIN rt.tag t '
             . 'JOIN rt.list l '
+            // Discard tags assigned to a user resource:
             . 'WHERE rt.resource IS NULL '
+            // Restrict to tags by list owner:
             . 'AND rt.user = l.user ';
         $parameters = [];
         if (null !== $listId) {
@@ -270,6 +272,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
         }
         $dql .= ' GROUP BY rt.list ';
         if ($tag && $andTags) {
+            // If we are ANDing the tags together, only pick lists that match ALL tags:
             $dql .= 'HAVING COUNT(DISTINCT(rt.tag)) = :cnt ';
             $parameters['cnt'] = count(array_unique($tag));
         }
