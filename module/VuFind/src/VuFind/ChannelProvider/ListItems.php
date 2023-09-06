@@ -290,14 +290,10 @@ class ListItems extends AbstractChannelProvider
         );
 
         // Format result set into an array:
-        $result = $resultIds = [];
+        $result = [];
         if (count($lists)) {
-            foreach ($lists as $list) {
-                $resultIds[] = $list[0];
-            }
-
-            $callback = function ($select) use ($resultIds) {
-                $select->where->in('id', $resultIds);
+            $callback = function ($select) use ($lists) {
+                $select->where->in('id', $lists);
             };
 
             foreach ($this->userList->select($callback) as $list) {

@@ -240,38 +240,43 @@ class TagService extends AbstractService implements LoggerAwareInterface
     ) {
         $tag = (array)$tag;
         $listId = $listId ? (array)$listId : null;
-        $dql = 'SELECT IDENTITY(rt.list) as list, COUNT(DISTINCT(rt.tag)) AS tagcnt '
+        $dql = 'SELECT IDENTITY(rt.list) as list '
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'JOIN rt.tag t '
             . 'JOIN rt.list l '
-            . 'WHERE rt.resource IS NULL ';
+            . 'WHERE rt.resource IS NULL '
+            . 'AND rt.user = l.user ';
         $parameters = [];
         if (null !== $listId) {
             $dql .= 'AND rt.list IN (:listId) ';
             $parameters['listId'] = $listId;
         }
         if ($publicOnly) {
-            $dql .= 'AND l.public = :public ';
-            $parameters['public'] = 1;
+            $dql .= 'AND l.public = 1 ';
         }
         if ($tag) {
             if ($this->caseSensitive) {
                 $dql .= 'AND t.tag IN (:tag) ';
                 $parameters['tag'] = $tag;
             } else {
-                $dql .= 'AND LOWER(t.tag) IN (:tag) ';
-                $parameters['tag'] = array_map('strtolower', $tag);
+                $tagClauses = [];
+                foreach ($tag as $i => $currentTag) {
+                    $tagPlaceholder = 'tag' . $i;
+                    $tagClauses[] = 'LOWER(t.tag) = LOWER(:' . $tagPlaceholder . ')';
+                    $parameters[$tagPlaceholder] = $currentTag;
+                }
+                $dql .= 'AND (' . implode(' OR ', $tagClauses) . ')';
             }
         }
-        $dql .= 'GROUP BY rt.list ';
+        $dql .= ' GROUP BY rt.list ';
         if ($tag && $andTags) {
-            $dql .= 'HAVING tagcnt = :cnt ';
+            $dql .= 'HAVING COUNT(DISTINCT(rt.tag)) = :cnt ';
             $parameters['cnt'] = count(array_unique($tag));
         }
         $dql .= 'ORDER BY rt.list';
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
-        $result = $query->getResult();
+        $result = $query->getSingleColumnResult();
         return $result;
     }
 
