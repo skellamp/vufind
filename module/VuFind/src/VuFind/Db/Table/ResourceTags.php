@@ -311,21 +311,6 @@ class ResourceTags extends Gateway
     }
 
     /**
-     * Assign anonymous tags to the specified user ID.
-     *
-     * @param int $id User ID to own anonymous tags.
-     *
-     * @return void
-     */
-    public function assignAnonymousTags($id)
-    {
-        $callback = function ($select) {
-            $select->where->isNull('user_id');
-        };
-        $this->update(['user_id' => $id], $callback);
-    }
-
-    /**
      * Given an array for sorting database results, make sure the tag field is
      * sorted in a case-insensitive fashion.
      *
