@@ -131,46 +131,6 @@ class ResourceTags extends Gateway
     }
 
     /**
-     * Get resources associated with a particular tag.
-     *
-     * @param string $tag    Tag to match
-     * @param string $userId ID of user owning favorite list
-     * @param string $listId ID of list to retrieve (null for all favorites)
-     *
-     * @return \Laminas\Db\ResultSet\AbstractResultSet
-     */
-    public function getResourcesForTag($tag, $userId, $listId = null)
-    {
-        $callback = function ($select) use ($tag, $userId, $listId) {
-            $select->columns(
-                [
-                    'resource_id' => new Expression(
-                        'DISTINCT(?)',
-                        ['resource_tags.resource_id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ), Select::SQL_STAR,
-                ]
-            );
-            $select->join(
-                ['t' => 'tags'],
-                'resource_tags.tag_id = t.id',
-                []
-            );
-            if ($this->caseSensitive) {
-                $select->where->equalTo('t.tag', $tag);
-            } else {
-                $select->where->literal('lower(t.tag) = lower(?)', [$tag]);
-            }
-            $select->where->equalTo('resource_tags.user_id', $userId);
-            if (null !== $listId) {
-                $select->where->equalTo('resource_tags.list_id', $listId);
-            }
-        };
-
-        return $this->select($callback);
-    }
-
-    /**
      * Given an array for sorting database results, make sure the tag field is
      * sorted in a case-insensitive fashion.
      *
