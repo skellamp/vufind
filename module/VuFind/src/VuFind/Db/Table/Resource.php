@@ -252,17 +252,14 @@ class Resource extends Gateway implements ServiceAwareInterface
             if ($newResource = $this->findResource($newId, $source, false)) {
                 // Special case: merge new ID and old ID:
                 $resourceService = $this->getDbService(\VuFind\Db\Service\ResourceService::class);
-                $resourceService->updateResource(\VuFind\Db\Entity\Comments::class, $newResource->id, $resource->id);
-                $resourceService->updateResource(
+                $entitiesToUpdate = [
+                    \VuFind\Db\Entity\Comments::class,
                     \VuFind\Db\Entity\UserResource::class,
-                    $newResource->id,
-                    $resource->id
-                );
-                $resourceService->updateResource(
                     \VuFind\Db\Entity\ResourceTags::class,
-                    $newResource->id,
-                    $resource->id
-                );
+                ];
+                foreach ($entitiesToUpdate as $entityToUpdate) {
+                    $resourceService->updateResource($entityToUpdate, $newResource->id, $resource->id);
+                }
                 $resource->delete();
                 $deduplicate = true;
             } else {
