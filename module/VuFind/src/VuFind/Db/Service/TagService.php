@@ -96,21 +96,29 @@ class TagService extends AbstractService
      */
     public function deduplicateResourceLinks()
     {
+        // match on all relevant IDs in duplicate group
+        // getDuplicates returns the minimum id in the set, so we want to
+        // delete all of the duplicates with a higher id value.
+        $regularDql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
+            . 'WHERE rt.resource = :resource AND rt.tag = :tag AND rt.list = :list '
+            . 'AND rt.user = :user AND rt.id > :id';
+        $regularQuery = $this->entityManager->createQuery($regularDql);
+        $nullListDql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
+            . 'WHERE rt.resource = :resource AND rt.tag = :tag AND rt.list IS NULL '
+            . 'AND rt.user = :user AND rt.id > :id';
+        $nullListQuery = $this->entityManager->createQuery($nullListDql);
         foreach ($this->getDuplicateResourceLinks() as $dupe) {
-            // match on all relevant IDs in duplicate group
-            // getDuplicates returns the minimum id in the set, so we want to
-            // delete all of the duplicates with a higher id value.
-            $dql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
-                . 'WHERE rt.resource = :resource AND rt.list = :list AND rt.tag = :tag '
-                . 'AND rt.user = :user AND rt.id > :id';
-            $query = $this->entityManager->createQuery($dql);
             $parameters = [
                 'resource' => $dupe['resource_id'],
-                'list' => $dupe['list_id'],
                 'user' => $dupe['user_id'],
                 'tag' => $dupe['tag_id'],
                 'id' =>  $dupe['id'],
             ];
+            // List ID might be null (for record-level tags); this requires special handling.
+            if ($dupe['list_id'] !== null) {
+                $parameters['list'] = $dupe['list_id'];
+            }
+            $query = $dupe['list_id'] === null ? $nullListQuery : $regularQuery;
             $query->setParameters($parameters);
             $query->execute();
         }
