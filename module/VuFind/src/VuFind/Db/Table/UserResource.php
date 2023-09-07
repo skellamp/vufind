@@ -241,48 +241,4 @@ class UserResource extends Gateway
         };
         return $this->select($callback);
     }
-
-    /**
-     * Deduplicate rows (sometimes necessary after merging foreign key IDs).
-     *
-     * @return void
-     */
-    public function deduplicate()
-    {
-        foreach ($this->getDuplicates() as $dupe) {
-            // Do this as a transaction to prevent odd behavior:
-            $connection = $this->getAdapter()->getDriver()->getConnection();
-            $connection->beginTransaction();
-
-            // Merge notes together...
-            $mainCriteria = [
-                'resource_id' => $dupe['resource_id'],
-                'list_id' => $dupe['list_id'],
-                'user_id' => $dupe['user_id'],
-            ];
-            $dupeRows = $this->select($mainCriteria);
-            $notes = [];
-            foreach ($dupeRows as $row) {
-                if (!empty($row['notes'])) {
-                    $notes[] = $row['notes'];
-                }
-            }
-            $this->update(
-                ['notes' => implode(' ', $notes)],
-                ['id' => $dupe['id']]
-            );
-            // Now delete extra rows...
-            $callback = function ($select) use ($dupe, $mainCriteria) {
-                // match on all relevant IDs in duplicate group
-                $select->where($mainCriteria);
-                // getDuplicates returns the minimum id in the set, so we want to
-                // delete all of the duplicates with a higher id value.
-                $select->where->greaterThan('id', $dupe['id']);
-            };
-            $this->delete($callback);
-
-            // Done -- commit the transaction:
-            $connection->commit();
-        }
-    }
 }

@@ -484,30 +484,4 @@ class ResourceTags extends Gateway
         };
         return $this->select($callback);
     }
-
-    /**
-     * Deduplicate rows (sometimes necessary after merging foreign key IDs).
-     *
-     * @return void
-     */
-    public function deduplicate()
-    {
-        foreach ($this->getDuplicates() as $dupe) {
-            $callback = function ($select) use ($dupe) {
-                // match on all relevant IDs in duplicate group
-                $select->where(
-                    [
-                        'resource_id' => $dupe['resource_id'],
-                        'tag_id' => $dupe['tag_id'],
-                        'list_id' => $dupe['list_id'],
-                        'user_id' => $dupe['user_id'],
-                    ]
-                );
-                // getDuplicates returns the minimum id in the set, so we want to
-                // delete all of the duplicates with a higher id value.
-                $select->where->greaterThan('id', $dupe['id']);
-            };
-            $this->delete($callback);
-        }
-    }
 }

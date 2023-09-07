@@ -91,15 +91,20 @@ class UserResourceService extends AbstractService
                 $this->entityManager->flush();
 
                 // Now delete extra rows...
+                // match on all relevant IDs in duplicate group
+                // getDuplicates returns the minimum id in the set, so we want to
+                // delete all of the duplicates with a higher id value.
                 $dql = 'DELETE FROM ' . $this->getEntityClass(UserResource::class) . ' ur '
-                . 'WHERE ur.resource = :resource AND ur.list = :list '
-                . 'AND ur.user = :user AND ur.id > :id';
+                    . 'WHERE ur.resource = :resource AND ur.list = :list '
+                    . 'AND ur.user = :user AND ur.id > :id';
                 $mainCriteria['id'] = $dupe['id'];
                 $query = $this->entityManager->createQuery($dql);
                 $query->setParameters($mainCriteria);
                 $query->execute();
+                // Done -- commit the transaction:
                 $this->entityManager->getConnection()->commit();
             } catch (\Exception $e) {
+                // If something went wrong, roll back the transaction and rethrow the error:
                 $this->entityManager->getConnection()->rollBack();
                 throw $e;
             }

@@ -97,6 +97,9 @@ class TagService extends AbstractService
     public function deduplicate()
     {
         foreach ($this->getDuplicates() as $dupe) {
+            // match on all relevant IDs in duplicate group
+            // getDuplicates returns the minimum id in the set, so we want to
+            // delete all of the duplicates with a higher id value.
             $dql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
                 . 'WHERE rt.resource = :resource AND rt.list = :list AND rt.tag = :tag '
                 . 'AND rt.user = :user AND rt.id > :id';
