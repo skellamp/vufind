@@ -72,12 +72,12 @@ class TagService extends AbstractService
     }
 
     /**
-     * Get a list of duplicate rows (this sometimes happens after merging IDs,
+     * Get a list of duplicate resource_tags rows (this sometimes happens after merging IDs,
      * for example after a Summon resource ID changes).
      *
      * @return array
      */
-    public function getDuplicates()
+    public function getDuplicateResourceLinks()
     {
         $dql = 'SELECT MIN(rt.resource) as resource_id, MiN(rt.tag) as tag_id, MIN(rt.list) as list_id, '
             . 'MIN(rt.user) as user_id, COUNT(rt.resource) as cnt, MIN(rt.id) as id '
@@ -90,13 +90,13 @@ class TagService extends AbstractService
     }
 
     /**
-     * Deduplicate rows (sometimes necessary after merging foreign key IDs).
+     * Deduplicate resource_tags rows (sometimes necessary after merging foreign key IDs).
      *
      * @return void
      */
-    public function deduplicate()
+    public function deduplicateResourceLinks()
     {
-        foreach ($this->getDuplicates() as $dupe) {
+        foreach ($this->getDuplicateResourceLinks() as $dupe) {
             // match on all relevant IDs in duplicate group
             // getDuplicates returns the minimum id in the set, so we want to
             // delete all of the duplicates with a higher id value.

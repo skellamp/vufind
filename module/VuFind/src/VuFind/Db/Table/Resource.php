@@ -274,7 +274,7 @@ class Resource extends Gateway implements ServiceAwareInterface
             // of the transaction):
             if ($deduplicate) {
                 $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
-                $tagService->deduplicate();
+                $tagService->deduplicateResourceLinks();
                 $userResourceService = $this->getDbService(\VuFind\Db\Service\UserResourceService::class);
                 $userResourceService->deduplicate();
             }

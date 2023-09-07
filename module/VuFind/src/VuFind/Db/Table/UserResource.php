@@ -197,48 +197,4 @@ class UserResource extends Gateway
         // Delete the rows:
         $this->delete($callback);
     }
-
-    /**
-     * Get a list of duplicate rows (this sometimes happens after merging IDs,
-     * for example after a Summon resource ID changes).
-     *
-     * @return mixed
-     */
-    public function getDuplicates()
-    {
-        $callback = function ($select) {
-            $select->columns(
-                [
-                    'resource_id' => new Expression(
-                        'MIN(?)',
-                        ['resource_id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                    'list_id' => new Expression(
-                        'MIN(?)',
-                        ['list_id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                    'user_id' => new Expression(
-                        'MIN(?)',
-                        ['user_id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                    'cnt' => new Expression(
-                        'COUNT(?)',
-                        ['resource_id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                    'id' => new Expression(
-                        'MIN(?)',
-                        ['id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                ]
-            );
-            $select->group(['resource_id', 'list_id', 'user_id']);
-            $select->having('COUNT(resource_id) > 1');
-        };
-        return $this->select($callback);
-    }
 }
