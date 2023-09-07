@@ -288,7 +288,8 @@ class ResourceService extends AbstractService implements \VuFind\Db\Service\Serv
     }
 
     /**
-     * Update resource.
+     * Update resource IDs for a specific class of entity (useful when merging
+     * duplicate resources).
      *
      * @param string       $entity      Entity class
      * @param int|Resource $newResource New resourceid.
