@@ -43,6 +43,70 @@ use VuFind\Db\Entity\UserResource;
 class UserResourceService extends AbstractService
 {
     /**
+     * Get a list of duplicate rows (this sometimes happens after merging IDs,
+     * for example after a Summon resource ID changes).
+     *
+     * @return array
+     */
+    public function getDuplicates()
+    {
+        $dql = 'SELECT MIN(ur.resource) as resource_id, MIN(ur.list) as list_id, '
+            . 'MIN(ur.user) as user_id, COUNT(ur.resource) as cnt, MIN(ur.id) as id '
+            . 'FROM ' . $this->getEntityClass(UserResource::class) . ' ur '
+            . 'GROUP BY ur.resource, ur.list, ur.user '
+            . 'HAVING COUNT(ur.resource) > 1';
+        $query = $this->entityManager->createQuery($dql);
+        $result = $query->getResult();
+        return $result;
+    }
+
+    /**
+     * Deduplicate rows (sometimes necessary after merging foreign key IDs).
+     *
+     * @return void
+     */
+    public function deduplicate()
+    {
+        $repo = $this->entityManager->getRepository($this->getEntityClass(UserResource::class));
+        foreach ($this->getDuplicates() as $dupe) {
+            // Do this as a transaction to prevent odd behavior:
+            $this->entityManager->getConnection()->beginTransaction();
+
+            // Merge notes together...
+            $mainCriteria = [
+                'resource' => $dupe['resource_id'],
+                'list' => $dupe['list_id'],
+                'user' => $dupe['user_id'],
+            ];
+            try {
+                $dupeRows = $repo->findBy($mainCriteria);
+                $notes = [];
+                foreach ($dupeRows as $row) {
+                    if (!empty($row->getNotes())) {
+                        $notes[] = $row->getNotes();
+                    }
+                }
+                $userResource =  $this->entityManager->getReference(UserResource::class, $dupe['id']);
+                $userResource->setNotes(implode(' ', $notes));
+                $this->entityManager->flush();
+
+                // Now delete extra rows...
+                $dql = 'DELETE FROM ' . $this->getEntityClass(UserResource::class) . ' ur '
+                . 'WHERE ur.resource = :resource AND ur.list = :list '
+                . 'AND ur.user = :user AND ur.id > :id';
+                $mainCriteria['id'] = $dupe['id'];
+                $query = $this->entityManager->createQuery($dql);
+                $query->setParameters($mainCriteria);
+                $query->execute();
+                $this->entityManager->getConnection()->commit();
+            } catch (\Exception $e) {
+                $this->entityManager->getConnection()->rollBack();
+                throw $e;
+            }
+        }
+    }
+
+    /**
      * Get statistics on use of UserResource.
      *
      * @return array
