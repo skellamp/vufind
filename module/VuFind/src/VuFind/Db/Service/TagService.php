@@ -99,17 +99,8 @@ class TagService extends AbstractService
         // match on all relevant IDs in duplicate group
         // getDuplicates returns the minimum id in the set, so we want to
         // delete all of the duplicates with a higher id value.
-        $regularDql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
-            . 'WHERE rt.resource = :resource AND rt.tag = :tag AND rt.list = :list '
-            . 'AND rt.user = :user AND rt.id > :id';
-        //$regularQuery = $this->entityManager->createQuery($regularDql);
-        $nullListDql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
-            . 'WHERE rt.resource = :resource AND rt.tag = :tag AND rt.list IS NULL '
-            . 'AND rt.user = :user AND rt.id > :id';
-        //$nullListQuery = $this->entityManager->createQuery($nullListDql);
-        
         foreach ($this->getDuplicateResourceLinks() as $dupe) {
-            $baseQuery = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
+            $dql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
                 . 'WHERE rt.resource = :resource AND rt.tag = :tag '
                 . 'AND rt.user = :user AND rt.id > :id';
             $parameters = [
@@ -121,12 +112,11 @@ class TagService extends AbstractService
             // List ID might be null (for record-level tags); this requires special handling.
             if ($dupe['list_id'] !== null) {
                 $parameters['list'] = $dupe['list_id'];
-                $baseQuery .= ' AND rt.list = :list ';
-            } else{
-                $baseQuery .= ' AND rt.list IS NULL';
+                $dql .= ' AND rt.list = :list ';
+            } else {
+                $dql .= ' AND rt.list IS NULL';
             }
-            $query =  $this->entityManager->createQuery($baseQuery);
-            //$query = $dupe['list_id'] === null ? $nullListQuery : $regularQuery;
+            $query =  $this->entityManager->createQuery($dql);
             $query->setParameters($parameters);
             $query->execute();
         }
