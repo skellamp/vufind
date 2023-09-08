@@ -102,12 +102,16 @@ class TagService extends AbstractService
         $regularDql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'WHERE rt.resource = :resource AND rt.tag = :tag AND rt.list = :list '
             . 'AND rt.user = :user AND rt.id > :id';
-        $regularQuery = $this->entityManager->createQuery($regularDql);
+        //$regularQuery = $this->entityManager->createQuery($regularDql);
         $nullListDql = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'WHERE rt.resource = :resource AND rt.tag = :tag AND rt.list IS NULL '
             . 'AND rt.user = :user AND rt.id > :id';
-        $nullListQuery = $this->entityManager->createQuery($nullListDql);
+        //$nullListQuery = $this->entityManager->createQuery($nullListDql);
+        
         foreach ($this->getDuplicateResourceLinks() as $dupe) {
+            $baseQuery = 'DELETE FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
+                . 'WHERE rt.resource = :resource AND rt.tag = :tag '
+                . 'AND rt.user = :user AND rt.id > :id';
             $parameters = [
                 'resource' => $dupe['resource_id'],
                 'user' => $dupe['user_id'],
@@ -117,8 +121,12 @@ class TagService extends AbstractService
             // List ID might be null (for record-level tags); this requires special handling.
             if ($dupe['list_id'] !== null) {
                 $parameters['list'] = $dupe['list_id'];
+                $baseQuery .= ' AND rt.list = :list ';
+            } else{
+                $baseQuery .= ' AND rt.list IS NULL';
             }
-            $query = $dupe['list_id'] === null ? $nullListQuery : $regularQuery;
+            $query =  $this->entityManager->createQuery($baseQuery);
+            //$query = $dupe['list_id'] === null ? $nullListQuery : $regularQuery;
             $query->setParameters($parameters);
             $query->execute();
         }
