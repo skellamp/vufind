@@ -30,6 +30,8 @@
 namespace VuFind\Db\Service;
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Query\Expr;
+use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Laminas\Log\LoggerAwareInterface;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
@@ -38,6 +40,7 @@ use VuFind\Db\Entity\ResourceTags;
 use VuFind\Db\Entity\Tags;
 use VuFind\Db\Entity\User;
 use VuFind\Db\Entity\UserList;
+use VuFind\Db\Entity\UserResource;
 use VuFind\Log\LoggerAwareTrait;
 
 use function count;
@@ -588,7 +591,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
         $limit = 20
     ): Paginator {
         $tag = $this->caseSensitive ? 't.tag' : 'lower(t.tag)';
-        $dql = 'SELECT rt.id, $tag AS tag, u.username AS username, r.title AS title,'
+        $dql = 'SELECT rt.id, ' . $tag . 'AS tag, u.username AS username, r.title AS title,'
             . ' t.id AS tag_id, r.id AS resource_id, u.id AS user_id '
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'LEFT JOIN rt.resource r '
@@ -777,5 +780,400 @@ class TagService extends AbstractService implements LoggerAwareInterface
             $stats['anonymous'] = $this->getAnonymousCount();
         }
         return $stats;
+    }
+
+    /**
+     * Create a Tags entity object.
+     *
+     * @return Tags
+     */
+    public function createTags(): Tags
+    {
+        $class = $this->getEntityClass(Tags::class);
+        return new $class();
+    }
+
+    /**
+     * Get the row associated with a specific tag string.
+     *
+     * @param string $tag       Tag to look up.
+     * @param bool   $create    Should we create the row if it does not exist?
+     * @param bool   $firstOnly Should we return the first matching row (true)
+     * or the entire result set (in case of multiple matches)?
+     *
+     * @return mixed Matching row/result set if found or created, null otherwise.
+     */
+    public function getByText($tag, $create = true, $firstOnly = true)
+    {
+        $dql = 'SELECT t '
+            . 'FROM ' . $this->getEntityClass(Tags::class) . ' t '
+            . 'WHERE ' . ($this->caseSensitive ? 't.tag = :tag' : 'LOWER(t.tag) = LOWER(:tag) ');
+        $parameters = compact('tag');
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $result =  $query->getResult();
+        if (count($result) == 0 && $create) {
+            $row = $this->createTags()
+                ->setTag($this->caseSensitive ? $tag : mb_strtolower($tag, 'UTF8'));
+            try {
+                $this->persistEntity($row);
+            } catch (\Exception $e) {
+                $this->logError('Could not save tag: ' . $e->getMessage());
+                return false;
+            }
+            return $firstOnly ? $row : [$row];
+        }
+        return $firstOnly ? current($result) : $result;
+    }
+
+    /**
+     * Get a list of tags based on a sort method ($sort) and a where clause.
+     *
+     * @param string $sort  Sort/search parameter
+     * @param int    $limit Maximum number of tags (default = 100,
+     *                      < 1 = no limit)
+     * @param string $where Extra code to modify $select (null for none)
+     * @param string $text  Tag to look up.
+     *
+     * @return array Tag details.
+     */
+    public function getTagList($sort = 'alphabetical', $limit = 100, $where = null, $text = null)
+    {
+        $tagClause = $this->caseSensitive ? 't.tag' : 'LOWER(t.tag)';
+        $dql = 'SELECT t.id as id, COUNT(DISTINCT(rt.resource)) as cnt, MAX(rt.posted) as posted '
+            . $tagClause . ' AS tag '
+            . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
+            . 'JOIN rt.tag t ';
+        $parameters = [];
+        switch ($where) {
+            case 'matchText':
+                $dql .= 'WHERE LOWER(t.tag) LIKE :text AND rt.resource is NOT NULL ';
+                $parameters['text'] = $text . '%';
+                break;
+            case 'discardUserList':
+                $dql .= 'WHERE rt.resource is NOT NULL ';
+                break;
+        }
+        $dql .= 'GROUP BY t.id, t.tag ';
+        switch ($sort) {
+            case 'alphabetical':
+                $dql .= 'ORDER BY lower(t.tag), cnt DESC ';
+                break;
+            case 'popularity':
+                $dql .= 'ORDER BY cnt DESC, lower(t.tag) ';
+                break;
+            case 'recent':
+                $dql .= 'ORDER BY posted DESC, cnt DESC, lower(t.tag) ';
+                break;
+        }
+
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $query->setMaxResults($limit);
+        $results = $query->getResult();
+
+        $tagList = [];
+        foreach ($results as $result) {
+            $tagList[] = [
+                'tag' => $result['tag'],
+                'cnt' => $result['cnt'],
+            ];
+        }
+        return $tagList;
+    }
+
+    /**
+     * Get all resources associated with the provided tag query.
+     *
+     * @param string $q      Search query
+     * @param string $source Record source (optional limiter)
+     * @param string $sort   Resource field to sort on (optional)
+     * @param int    $offset Offset for results
+     * @param int    $limit  Limit for results (null for none)
+     * @param bool   $fuzzy  Are we doing an exact or fuzzy search?
+     *
+     * @return array
+     */
+    public function resourceSearch(
+        $q,
+        $source = null,
+        $sort = null,
+        $offset = 0,
+        $limit = null,
+        $fuzzy = true
+    ) {
+        $dql = 'SELECT DISTINCT(r.id) AS resource, r '
+            . 'FROM ' . $this->getEntityClass(Tags::class) . ' t '
+            . 'JOIN ' . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
+            . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = rt.resource '
+            . 'WHERE rt.resource IS NOT NULL ';
+        $parameters = [];
+        if ($fuzzy) {
+            $dql .= 'AND LOWER(t.tag) LIKE LOWER(:q) ';
+            $parameters['q'] = $q . '%';
+        } elseif (!$this->caseSensitive) {
+            $dql .= 'AND LOWER(t.tag) = LOWER(:q) ';
+            $parameters['q'] = $q;
+        } else {
+            $dql .= 'AND t.tag = :q ';
+            $parameters['q'] = $q;
+        }
+
+        if (!empty($source)) {
+            $dql .= 'AND r.source = :source';
+            $parameters['source'] = $source;
+        }
+
+        if (!empty($sort)) {
+            $dql = ResourceService::applySort($dql, $sort);
+        }
+
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        if ($offset > 0) {
+            $query->setFirstResult($offset);
+        }
+        if (null !== $limit) {
+            $query->setMaxResults($limit);
+        }
+        $results = $query->getResult();
+        return $results;
+    }
+
+    /**
+     * Get tags associated with the specified resource.
+     *
+     * @param string $id          Record ID to look up
+     * @param string $source      Source of record to look up
+     * @param int    $limit       Max. number of tags to return (0 = no limit)
+     * @param int    $list        ID of list to load tags from (null for no
+     * restriction,  true for on ANY list, false for on NO list)
+     * @param int    $user        ID of user to load tags from (null for all users)
+     * @param string $sort        Sort type ('count' or 'tag')
+     * @param int    $userToCheck ID of user to check for ownership (this will
+     * not filter the result list, but rows owned by this user will have an is_me
+     * column set to 1)
+     *
+     * @return array
+     */
+    public function getForResource(
+        $id,
+        $source = DEFAULT_SEARCH_BACKEND,
+        $limit = 0,
+        $list = null,
+        $user = null,
+        $sort = 'count',
+        $userToCheck = null
+    ) {
+        $Select = '';
+        $join = 'JOIN ';
+        $parameters = compact('id', 'source');
+        $tag = $this->caseSensitive ? 't.tag' : 'lower(t.tag)';
+        if (!empty($userToCheck)) {
+            $Select = ', MAX(CASE WHEN rt.user = :userToCheck THEN 1 ELSE 0 END) AS is_me ';
+            $join = 'LEFT JOIN ';
+            $parameters['userToCheck'] = $userToCheck;
+        }
+        $dql = 'SELECT t.id AS id, COUNT(DISTINCT(rt.user)) AS cnt, ' . $tag . ' AS tag ' . $Select
+            . 'FROM ' . $this->getEntityClass(Tags::class) . ' t ' 
+            . $join . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
+            . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = rt.resource '
+            . 'WHERE r.recordId = :id AND r.source = :source ';
+
+        if ($list === true) {
+            $dql .= 'AND rt.list IS NOT NULL ';
+        } elseif ($list === false) {
+            $dql .= 'AND rt.list IS NULL ';
+        } elseif (null !== $list) {
+            $dql .= 'AND rt.list = :list ';
+            $parameters['list'] = $list;
+        }
+        if (null !== $user) {
+            $dql .= 'AND rt.user = :user ';
+            $parameters['user'] = $user;
+        }
+
+        $dql .= 'GROUP BY t.id, t.tag ';
+        if ($sort == 'count') {
+            $dql .= 'ORDER BY cnt DESC, LOWER(t.tag) ';
+        } elseif ($sort == 'tag') {
+            $dql .= 'ORDER BY LOWER(t.tag) ';
+        }
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        if ($limit > 0) {
+            $query->setMaxResults($limit);
+        }
+        $results = $query->getResult();
+        return $results;
+    }
+
+    /**
+     * Get a list of all tags generated by the user in favorites lists. Note that
+     * the returned list WILL NOT include tags attached to records that are not
+     * saved in favorites lists.
+     *
+     * @param string $userId     User ID to look up.
+     * @param string $resourceId Filter for tags tied to a specific resource (null
+     * for no filter).
+     * @param int    $listId     Filter for tags tied to a specific list (null for no
+     * filter).
+     * @param string $source     Filter for tags tied to a specific record source
+     * (null for no filter).
+     *
+     * @return array
+     */
+    public function getListTagsForUser(
+        $userId,
+        $resourceId = null,
+        $listId = null,
+        $source = null
+    ) {
+        $tag = $this->caseSensitive ? 't.tag' : 'lower(t.tag)';
+        $dql = 'SELECT MIN(t.id) AS id, ' . $tag . ' AS tag, COUNT(DISTINCT(rt.resource)) AS cnt '
+            . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
+            . 'JOIN rt.tag t '
+            . 'JOIN rt.resource r '
+            . 'JOIN ' . $this->getEntityClass(UserResource::class) . ' ur '
+            . 'WITH r.id = ur.resource '
+            . 'WHERE ur.user = :userId AND rt.user = :userId AND ur.list = rt.list ';
+        $parameters = compact('userId');
+        if (null !== $source) {
+            $dql .= 'AND r.source = :source ';
+            $parameters['source'] = $source;
+        }
+        if (null !== $resourceId) {
+            $dql .= 'AND r.recordId = :resourceId ';
+            $parameters['resourceId'] = $resourceId;
+        }
+        if (null !== $listId) {
+            $dql .= 'AND rt.list = :listId ';
+            $parameters['listId'] = $listId;
+        }
+        $dql .= 'GROUP BY t.tag ORDER BY LOWER(t.tag) ';
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $results = $query->getResult();
+        return $results;
+    }
+
+    /**
+     * Get tags assigned to a user list.
+     *
+     * @param int    $listId List ID
+     * @param string $userId User ID to look up (null for no filter).
+     *
+     * @return array
+     */
+    public function getForList($listId, $userId = null)
+    {
+        $tag = $this->caseSensitive ? 't.tag' : 'lower(t.tag)';
+
+        $dql = 'SELECT MIN(t.id), ' . $tag . ' AS tag '
+            . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
+            . 'JOIN rt.tag t '
+            . 'WHERE rt.list = :listId AND rt.resource IS NULL ';
+        $parameters  = compact('listId');
+        if ($userId) {
+            $dql .= 'AND rt.user = :userId ';
+            $parameters['userId'] = $userId;
+        }
+
+        $dql .= 'GROUP BY t.tag ORDER BY LOWER(t.tag) ';
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $results = $query->getResult();
+        return $results;
+    }
+
+    /**
+     * Get a list of duplicate tags (this should never happen, but past bugs
+     * and the introduction of case-insensitive tags have introduced problems).
+     *
+     * @return array
+     */
+    public function getDuplicates()
+    {
+        $dql = 'SELECT MIN(t.tag) AS tag, COUNT(t.tag) AS cnt, MIN(t.id) AS id '
+            . 'FROM ' . $this->getEntityClass(Tags::class) . ' t '
+            . 'GROUP BY ' . $this->caseSensitive ? 't.tag ' : 'lower(t.tag) '
+            . 'HAVING COUNT(t.tag) > 1';
+        $query = $this->entityManager->createQuery($dql);
+        $results = $query->getResult();
+        return $results;
+    }
+
+    /**
+     * Support method for fixDuplicateTag() -- merge $source into $target.
+     *
+     * @param string $target Target ID
+     * @param string $source Source ID
+     *
+     * @return void
+     */
+    protected function mergeTags($target, $source)
+    {
+        // Don't merge a tag with itself!
+        if ($target === $source) {
+            return;
+        }
+
+        $result = $this->entityManager->getRepository($this->getEntityClass(ResourceTags::class))
+            ->findBy(['tag' => $source]);
+
+        foreach ($result as $current) {
+            // Move the link to the target ID:
+            $this->createLink(
+                $current->getResource(),
+                $target,
+                $current->getUser(),
+                $current->getList(),
+                $current->getPosted()
+            );
+
+            // Remove the duplicate link:
+            $this->entityManager->remove($current);
+        }
+        // Remove the source tag:
+        $this->entityManager->remove($source);
+        try {
+            $this->entityManager->flush();
+        } catch (\Exception $e) {
+            $this->logError('Clean up operation failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Support method for fixDuplicateTags()
+     *
+     * @param string $tag Tag to deduplicate.
+     *
+     * @return void
+     */
+    protected function fixDuplicateTag($tag)
+    {
+        // Make sure this really is a duplicate.
+        $result = $this->getByText($tag, false, false);
+        if (count($result) < 2) {
+            return;
+        }
+
+        $first = current($result);
+        foreach ($result as $current) {
+            $this->mergeTags($first, $current);
+        }
+    }
+
+    /**
+     * Repair duplicate tags in the database (if any).
+     *
+     * @return void
+     */
+    public function fixDuplicateTags()
+    {
+        foreach ($this->getDuplicates() as $dupe) {
+            $this->fixDuplicateTag($dupe['tag']);
+        }
     }
 }
