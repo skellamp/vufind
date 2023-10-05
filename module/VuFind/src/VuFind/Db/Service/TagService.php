@@ -30,8 +30,6 @@
 namespace VuFind\Db\Service;
 
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Query\Expr;
-use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Laminas\Log\LoggerAwareInterface;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
@@ -975,7 +973,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
             $parameters['userToCheck'] = $userToCheck;
         }
         $dql = 'SELECT t.id AS id, COUNT(DISTINCT(rt.user)) AS cnt, ' . $tag . ' AS tag ' . $Select
-            . 'FROM ' . $this->getEntityClass(Tags::class) . ' t ' 
+            . 'FROM ' . $this->getEntityClass(Tags::class) . ' t '
             . $join . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
             . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = rt.resource '
             . 'WHERE r.recordId = :id AND r.source = :source ';
@@ -1069,7 +1067,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
     {
         $tag = $this->caseSensitive ? 't.tag' : 'lower(t.tag)';
 
-        $dql = 'SELECT MIN(t.id), ' . $tag . ' AS tag '
+        $dql = 'SELECT MIN(t.id) AS id, ' . $tag . ' AS tag '
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'JOIN rt.tag t '
             . 'WHERE rt.list = :listId AND rt.resource IS NULL ';
