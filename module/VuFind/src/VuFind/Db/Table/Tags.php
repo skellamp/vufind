@@ -386,42 +386,6 @@ class Tags extends Gateway implements \VuFind\Db\Service\ServiceAwareInterface
     }
 
     /**
-     * Get a list of duplicate tags (this should never happen, but past bugs
-     * and the introduction of case-insensitive tags have introduced problems).
-     *
-     * @return mixed
-     */
-    public function getDuplicates()
-    {
-        $callback = function ($select) {
-            $select->columns(
-                [
-                    'tag' => new Expression(
-                        'MIN(?)',
-                        ['tag'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                    'cnt' => new Expression(
-                        'COUNT(?)',
-                        ['tag'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                    'id' => new Expression(
-                        'MIN(?)',
-                        ['id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                ]
-            );
-            $select->group(
-                $this->caseSensitive ? 'tag' : new Expression('lower(tag)')
-            );
-            $select->having('COUNT(tag) > 1');
-        };
-        return $this->select($callback);
-    }
-
-    /**
      * Support method for fixDuplicateTag() -- merge $source into $target.
      *
      * @param string $target Target ID
