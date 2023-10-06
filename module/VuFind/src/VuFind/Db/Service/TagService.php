@@ -830,7 +830,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
      * @param string $sort  Sort/search parameter
      * @param int    $limit Maximum number of tags (default = 100,
      *                      < 1 = no limit)
-     * @param string $where Extra code to modify $select (null for none)
+     * @param string $where Extra code to modify query (null for none)
      * @param string $text  Tag to look up.
      *
      * @return array Tag details.
@@ -963,16 +963,16 @@ class TagService extends AbstractService implements LoggerAwareInterface
         $sort = 'count',
         $userToCheck = null
     ) {
-        $Select = '';
+        $select = '';
         $join = 'JOIN ';
         $parameters = compact('id', 'source');
         $tag = $this->caseSensitive ? 't.tag' : 'lower(t.tag)';
         if (!empty($userToCheck)) {
-            $Select = ', MAX(CASE WHEN rt.user = :userToCheck THEN 1 ELSE 0 END) AS is_me ';
+            $select = ', MAX(CASE WHEN rt.user = :userToCheck THEN 1 ELSE 0 END) AS is_me ';
             $join = 'LEFT JOIN ';
             $parameters['userToCheck'] = $userToCheck;
         }
-        $dql = 'SELECT t.id AS id, COUNT(DISTINCT(rt.user)) AS cnt, ' . $tag . ' AS tag ' . $Select
+        $dql = 'SELECT t.id AS id, COUNT(DISTINCT(rt.user)) AS cnt, ' . $tag . ' AS tag ' . $select
             . 'FROM ' . $this->getEntityClass(Tags::class) . ' t '
             . $join . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
             . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = rt.resource '
