@@ -967,13 +967,13 @@ class TagService extends AbstractService implements LoggerAwareInterface
         $join = 'JOIN ';
         $parameters = compact('id', 'source');
         $tag = $this->caseSensitive ? 't.tag' : 'lower(t.tag)';
+        $fieldList = 't.id AS id, COUNT(DISTINCT(rt.user)) AS cnt, ' . $tag . ' AS tag';
         if (!empty($userToCheck)) {
-            $select = ', MAX(CASE WHEN rt.user = :userToCheck THEN 1 ELSE 0 END) AS is_me ';
+            $fieldList .= ', MAX(CASE WHEN rt.user = :userToCheck THEN 1 ELSE 0 END) AS is_me';
             $join = 'LEFT JOIN ';
             $parameters['userToCheck'] = $userToCheck;
         }
-        $dql = 'SELECT t.id AS id, COUNT(DISTINCT(rt.user)) AS cnt, ' . $tag . ' AS tag ' . $select
-            . 'FROM ' . $this->getEntityClass(Tags::class) . ' t '
+        $dql = 'SELECT ' . $fieldList . ' FROM ' . $this->getEntityClass(Tags::class) . ' t '
             . $join . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
             . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = rt.resource '
             . 'WHERE r.recordId = :id AND r.source = :source ';
