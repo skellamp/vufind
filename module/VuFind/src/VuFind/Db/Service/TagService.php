@@ -964,17 +964,19 @@ class TagService extends AbstractService implements LoggerAwareInterface
         $userToCheck = null
     ) {
         $select = '';
-        $join = 'JOIN ';
+        $resourceTagsJoin = 'JOIN ';
         $parameters = compact('id', 'source');
         $tag = $this->caseSensitive ? 't.tag' : 'lower(t.tag)';
         $fieldList = 't.id AS id, COUNT(DISTINCT(rt.user)) AS cnt, ' . $tag . ' AS tag';
+        // If we're looking for ownership, adjust query to include an "is_me" flag value indicating
+        // if the selected resource is tagged by the specified user.
         if (!empty($userToCheck)) {
             $fieldList .= ', MAX(CASE WHEN rt.user = :userToCheck THEN 1 ELSE 0 END) AS is_me';
-            $join = 'LEFT JOIN ';
+            $resourceTagsJoin = 'LEFT JOIN ';
             $parameters['userToCheck'] = $userToCheck;
         }
         $dql = 'SELECT ' . $fieldList . ' FROM ' . $this->getEntityClass(Tags::class) . ' t '
-            . $join . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
+            . $resourceTagsJoin . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
             . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = rt.resource '
             . 'WHERE r.recordId = :id AND r.source = :source ';
 
