@@ -324,6 +324,7 @@ class ResourceService extends AbstractService implements \VuFind\Db\Service\Serv
         $legalSorts = [
             'title', 'title desc', 'author', 'author desc', 'year', 'year desc',
         ];
+        $orderByClause = '';
         if (!empty($sort) && in_array(strtolower($sort), $legalSorts)) {
             // Strip off 'desc' to obtain the raw field name -- we'll need it
             // to sort null values to the bottom:
