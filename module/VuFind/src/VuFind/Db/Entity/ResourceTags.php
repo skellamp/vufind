@@ -197,9 +197,9 @@ class ResourceTags implements EntityInterface
     /**
      * List getter
      *
-     * @return UserList
+     * @return ?UserList
      */
-    public function getList(): UserList
+    public function getList(): ?UserList
     {
         return $this->list;
     }

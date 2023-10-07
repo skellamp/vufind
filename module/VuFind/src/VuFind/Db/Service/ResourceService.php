@@ -311,7 +311,6 @@ class ResourceService extends AbstractService implements \VuFind\Db\Service\Serv
     /**
      * Apply a sort parameter to a query on the resource table.
      *
-     * @param string $query Query to modify
      * @param string $sort  Field to use for sorting (may include
      *                      'desc' qualifier)
      * @param string $alias Alias to the resource table (defaults to
@@ -319,7 +318,7 @@ class ResourceService extends AbstractService implements \VuFind\Db\Service\Serv
      *
      * @return string
      */
-    public static function applySort($query, $sort, $alias = 'r')
+    public static function getOrderByClause($sort, $alias = 'r')
     {
         // Apply sorting, if necessary:
         $legalSorts = [
@@ -343,8 +342,8 @@ class ResourceService extends AbstractService implements \VuFind\Db\Service\Serv
             // Apply the user-specified sort:
             $order[] = $alias . '.' . $sort;
             // Inject the sort preferences into the query object:
-            $query .= 'ORDER BY ' . implode(', ', $order);
+            $orderByClause = ' ORDER BY ' . implode(', ', $order);
         }
-        return $query;
+        return $orderByClause;
     }
 }

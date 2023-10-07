@@ -30,6 +30,7 @@
 namespace VuFind\Db\Service;
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Laminas\Log\LoggerAwareInterface;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
@@ -113,7 +114,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
         $resource = is_object($resource) ? $resource : $this->entityManager->getReference(Resource::class, $resource);
         $tag = is_object($tag) ? $tag : $this->entityManager->getReference(Tags::class, $tag);
 
-        $dql = ' DELETE rt FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt ';
+        $dql = ' SELECT rt FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt ';
 
         $dqlWhere = [];
         $dqlWhere[] = 'rt.resource = :resource ';
@@ -122,18 +123,18 @@ class TagService extends AbstractService implements LoggerAwareInterface
 
         if (null !== $list) {
             $list = is_object($list) ? $list : $this->entityManager->getReference(UserList::class, $list);
-            $dql .= 'rt.list = :list ';
+            $dqlWhere[] = 'rt.list = :list ';
             $parameters['list'] = $list;
         } else {
-            $dql .= 'rt.list IS NULL ';
+            $dqlWhere[] = 'rt.list IS NULL ';
         }
 
         if (null !== $user) {
             $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
-            $dql .= 'rt.user = :user';
+            $dqlWhere[] = 'rt.user = :user';
             $parameters['user'] = $user;
         } else {
-            $dql .= 'rt.user IS NULL ';
+            $dqlWhere[] = 'rt.user IS NULL ';
         }
         $dql .= ' WHERE ' . implode(' AND ', $dqlWhere);
 
@@ -923,7 +924,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
         }
 
         if (!empty($sort)) {
-            $dql = ResourceService::applySort($dql, $sort);
+            $dql .= ResourceService::getOrderByClause($dql, $sort);
         }
 
         $query = $this->entityManager->createQuery($dql);
@@ -963,8 +964,6 @@ class TagService extends AbstractService implements LoggerAwareInterface
         $sort = 'count',
         $userToCheck = null
     ) {
-        $select = '';
-        $resourceTagsJoin = 'JOIN ';
         $parameters = compact('id', 'source');
         $tag = $this->caseSensitive ? 't.tag' : 'lower(t.tag)';
         $fieldList = 't.id AS id, COUNT(DISTINCT(rt.user)) AS cnt, ' . $tag . ' AS tag';
@@ -972,11 +971,10 @@ class TagService extends AbstractService implements LoggerAwareInterface
         // if the selected resource is tagged by the specified user.
         if (!empty($userToCheck)) {
             $fieldList .= ', MAX(CASE WHEN rt.user = :userToCheck THEN 1 ELSE 0 END) AS is_me';
-            $resourceTagsJoin = 'LEFT JOIN ';
             $parameters['userToCheck'] = $userToCheck;
         }
         $dql = 'SELECT ' . $fieldList . ' FROM ' . $this->getEntityClass(Tags::class) . ' t '
-            . $resourceTagsJoin . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
+            . 'JOIN ' . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
             . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = rt.resource '
             . 'WHERE r.recordId = :id AND r.source = :source ';
 
@@ -1094,27 +1092,31 @@ class TagService extends AbstractService implements LoggerAwareInterface
      */
     public function getDuplicates()
     {
-        $dql = 'SELECT MIN(t.tag) AS tag, COUNT(t.tag) AS cnt, MIN(t.id) AS id '
-            . 'FROM ' . $this->getEntityClass(Tags::class) . ' t '
-            . 'GROUP BY ' . $this->caseSensitive ? 't.tag ' : 'lower(t.tag) '
-            . 'HAVING COUNT(t.tag) > 1';
-        $query = $this->entityManager->createQuery($dql);
-        $results = $query->getResult();
+        $rsm = new ResultSetMapping();
+        $rsm->addScalarResult('tag', 'tag');
+        $rsm->addScalarResult('cnt', 'cnt');
+        $rsm->addScalarResult('id', 'id');
+        $sql = 'SELECT MIN(tag) AS tag, COUNT(tag) AS cnt, MIN(id) AS id '
+            . 'FROM tags t '
+            . 'GROUP BY ' . ($this->caseSensitive ? 't.tag ' : 'LOWER(t.tag) ')
+            . 'HAVING COUNT(tag) > 1';
+        $statement = $this->entityManager->createNativeQuery($sql, $rsm);
+        $results = $statement->getResult();
         return $results;
     }
 
     /**
      * Support method for fixDuplicateTag() -- merge $source into $target.
      *
-     * @param string $target Target ID
-     * @param string $source Source ID
+     * @param Tag $target Target ID
+     * @param Tag $source Source ID
      *
      * @return void
      */
     protected function mergeTags($target, $source)
     {
         // Don't merge a tag with itself!
-        if ($target === $source) {
+        if ($target->getId() === $source->getId()) {
             return;
         }
 
