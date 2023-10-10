@@ -906,16 +906,13 @@ class TagService extends AbstractService implements LoggerAwareInterface
             . 'JOIN ' . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
             . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = rt.resource '
             . 'WHERE rt.resource IS NOT NULL ';
-        $parameters = [];
+        $parameters = compact('q');
         if ($fuzzy) {
             $dql .= 'AND LOWER(t.tag) LIKE LOWER(:q) ';
-            $parameters['q'] = $q . '%';
         } elseif (!$this->caseSensitive) {
             $dql .= 'AND LOWER(t.tag) = LOWER(:q) ';
-            $parameters['q'] = $q;
         } else {
             $dql .= 'AND t.tag = :q ';
-            $parameters['q'] = $q;
         }
 
         if (!empty($source)) {

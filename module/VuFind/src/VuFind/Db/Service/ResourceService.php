@@ -313,8 +313,7 @@ class ResourceService extends AbstractService implements \VuFind\Db\Service\Serv
      *
      * @param string $sort  Field to use for sorting (may include
      *                      'desc' qualifier)
-     * @param string $alias Alias to the resource table (defaults to
-     *                      'resource')
+     * @param string $alias Alias to the resource table (defaults to 'r')
      *
      * @return string
      */
