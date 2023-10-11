@@ -31,7 +31,6 @@ namespace VuFind\Db\Table;
 
 use Laminas\Db\Adapter\Adapter;
 use Laminas\Db\Sql\Expression;
-use Laminas\Db\Sql\Predicate\Predicate;
 use Laminas\Db\Sql\Select;
 use VuFind\Db\Row\RowGateway;
 
