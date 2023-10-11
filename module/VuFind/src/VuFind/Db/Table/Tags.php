@@ -199,43 +199,6 @@ class Tags extends Gateway implements \VuFind\Db\Service\ServiceAwareInterface
     }
 
     /**
-     * Get tags assigned to a user list.
-     *
-     * @param int    $listId List ID
-     * @param string $userId User ID to look up (null for no filter).
-     *
-     * @return \Laminas\Db\ResultSet\AbstractResultSet
-     */
-    public function getForList($listId, $userId = null)
-    {
-        $callback = function ($select) use ($listId, $userId) {
-            $select->columns(
-                [
-                    'id' => new Expression(
-                        'min(?)',
-                        ['tags.id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                    'tag' => $this->caseSensitive
-                        ? 'tag' : new Expression('lower(tag)'),
-                ]
-            );
-            $select->join(
-                ['rt' => 'resource_tags'],
-                'tags.id = rt.tag_id',
-                []
-            );
-            $select->where->equalTo('rt.list_id', $listId);
-            $select->where->isNull('rt.resource_id');
-            if ($userId) {
-                $select->where->equalTo('rt.user_id', $userId);
-            }
-            $select->group(['tag'])->order([new Expression('lower(tag)')]);
-        };
-        return $this->select($callback);
-    }
-
-    /**
      * Get a list of tags based on a sort method ($sort)
      *
      * @param string   $sort        Sort/search parameter
