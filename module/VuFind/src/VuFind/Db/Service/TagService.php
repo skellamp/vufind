@@ -828,43 +828,32 @@ class TagService extends AbstractService implements LoggerAwareInterface
     /**
      * Get a list of tags based on a sort method ($sort) and a where clause.
      *
-     * @param string $sort  Sort/search parameter
-     * @param int    $limit Maximum number of tags (default = 100,
-     *                      < 1 = no limit)
-     * @param string $where Extra code to modify query (null for none)
-     * @param string $text  Tag to look up.
+     * @param string $sort       Sort/search parameter
+     * @param int    $limit      Maximum number of tags (default = 100,
+     *                           < 1 = no limit)
+     * @param array  $where      Array of where clauses
+     * @param array  $parameters Array of query parameters
      *
      * @return array Tag details.
      */
-    public function getTagList($sort = 'alphabetical', $limit = 100, $where = null, $text = null)
+    public function getTagList($sort = 'alphabetical', $limit = 100, $where = [], $parameters = [])
     {
         $tagClause = $this->caseSensitive ? 't.tag' : 'LOWER(t.tag)';
         $dql = 'SELECT t.id as id, COUNT(DISTINCT(rt.resource)) as cnt, MAX(rt.posted) as posted '
             . $tagClause . ' AS tag '
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'JOIN rt.tag t ';
-        $parameters = [];
-        switch ($where) {
-            case 'matchText':
-                $dql .= 'WHERE LOWER(t.tag) LIKE :text AND rt.resource is NOT NULL ';
-                $parameters['text'] = $text . '%';
-                break;
-            case 'discardUserList':
-                $dql .= 'WHERE rt.resource is NOT NULL ';
-                break;
+        if (!empty($where)) {
+            $dql .= ' WHERE ' . implode(' AND ', $where);
         }
+
         $dql .= 'GROUP BY t.id, t.tag ';
-        switch ($sort) {
-            case 'alphabetical':
-                $dql .= 'ORDER BY lower(t.tag), cnt DESC ';
-                break;
-            case 'popularity':
-                $dql .= 'ORDER BY cnt DESC, lower(t.tag) ';
-                break;
-            case 'recent':
-                $dql .= 'ORDER BY posted DESC, cnt DESC, lower(t.tag) ';
-                break;
-        }
+        $dql .= match ($sort) {
+            'alphabetical' => 'ORDER BY lower(t.tag), cnt DESC ',
+            'popularity' => 'ORDER BY cnt DESC, lower(t.tag) ',
+            'recent' => 'ORDER BY posted DESC, cnt DESC, lower(t.tag) ',
+            default => '',
+        };
 
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
