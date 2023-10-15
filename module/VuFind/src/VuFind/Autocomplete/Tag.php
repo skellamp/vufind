@@ -72,7 +72,7 @@ class Tag implements AutocompleteInterface
     public function getSuggestions($query)
     {
         $tagList = [];
-        $tags = $this->tagService->matchText($query, True);
+        $tags = $this->tagService->matchText($query);
         if ($tags) {
             foreach ($tags as $tag) {
                 $tagList[] = $tag['tag'];
