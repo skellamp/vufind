@@ -340,9 +340,7 @@ class BrowseController extends AbstractBase implements
                     // Note -- this does not need to be escaped because
                     // $params['query'] has already been validated against
                     // the getAlphabetList() method below!
-                    $where = [' LOWER(t.tag) LIKE :text AND rt.resource is NOT NULL '];
-                    $parameters['text'] = $params['query'] . '%';
-                    $tags = $tagService->getTagList(where: $where, parameters: $parameters);
+                    $tags = $tagService->matchText($params['query']);
                     $tagList = [];
                     foreach ($tags as $tag) {
                         if ($tag['cnt'] > 0) {

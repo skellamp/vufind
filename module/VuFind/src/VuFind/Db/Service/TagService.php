@@ -826,6 +826,20 @@ class TagService extends AbstractService implements LoggerAwareInterface
     }
 
     /**
+     * Get the tags that match a string
+     *
+     * @param string $text Tag to look up.
+     *
+     * @return array
+     */
+    public function matchText($text)
+    {
+        $where = [' LOWER(t.tag) LIKE :text AND rt.resource is NOT NULL '];
+        $parameters['text'] = $text . '%';
+        return $this->getTagList(where: $where, parameters: $parameters);
+    }
+
+    /**
      * Get a list of tags based on a sort method ($sort) and a where clause.
      *
      * @param string $sort       Sort/search parameter
@@ -839,7 +853,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
     public function getTagList($sort = 'alphabetical', $limit = 100, $where = [], $parameters = [])
     {
         $tagClause = $this->caseSensitive ? 't.tag' : 'LOWER(t.tag)';
-        $dql = 'SELECT t.id as id, COUNT(DISTINCT(rt.resource)) as cnt, MAX(rt.posted) as posted '
+        $dql = 'SELECT t.id as id, COUNT(DISTINCT(rt.resource)) as cnt, MAX(rt.posted) as posted, '
             . $tagClause . ' AS tag '
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'JOIN rt.tag t ';
