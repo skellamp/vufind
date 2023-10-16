@@ -99,11 +99,10 @@ class Resource extends RowGateway implements
     {
         $tagText = trim($tagText);
         if (!empty($tagText)) {
-            $tags = $this->getDbTable('Tags');
-            $tag = $tags->getByText($tagText);
+            $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
+            $tag = $tagService->getByText($tagText);
 
-            $linker = $this->getDbTable('ResourceTags');
-            $linker->createLink(
+            $tagService->createLink(
                 $this->id,
                 $tag->id,
                 is_object($user) ? $user->id : null,
@@ -125,15 +124,14 @@ class Resource extends RowGateway implements
     public function deleteTag($tagText, $user, $list_id = null)
     {
         $tagText = trim($tagText);
+        $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
         if (!empty($tagText)) {
-            $tags = $this->getDbTable('Tags');
             $tagIds = [];
-            foreach ($tags->getByText($tagText, false, false) as $tag) {
+            foreach ($tagService->getByText($tagText, false, false) as $tag) {
                 $tagIds[] = $tag->id;
             }
             if (!empty($tagIds)) {
-                $linker = $this->getDbService(\VuFind\Db\Service\TagService::class);
-                $linker->destroyResourceLinks(
+                $tagService->destroyResourceLinks(
                     $this->id,
                     $user->id,
                     $list_id,
