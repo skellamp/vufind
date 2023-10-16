@@ -834,7 +834,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
      */
     public function matchText($text)
     {
-        $where = [' LOWER(t.tag) LIKE :text AND rt.resource is NOT NULL '];
+        $where = ['LOWER(t.tag) LIKE :text', 'rt.resource is NOT NULL '];
         $parameters = ['text' => $text . '%'];
         return $this->getTagList(where: $where, parameters: $parameters);
     }
@@ -858,7 +858,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'JOIN rt.tag t ';
         if (!empty($where)) {
-            $dql .= ' WHERE ' . implode(' AND ', $where);
+            $dql .= ' WHERE ' . implode(' AND ', $where) . ' ';
         }
 
         $dql .= 'GROUP BY t.id, t.tag ';
