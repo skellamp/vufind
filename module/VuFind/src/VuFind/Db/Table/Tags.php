@@ -30,8 +30,6 @@
 namespace VuFind\Db\Table;
 
 use Laminas\Db\Adapter\Adapter;
-use Laminas\Db\Sql\Expression;
-use Laminas\Db\Sql\Select;
 use VuFind\Db\Row\RowGateway;
 
 use function count;
@@ -106,74 +104,5 @@ class Tags extends Gateway implements \VuFind\Db\Service\ServiceAwareInterface
             return $firstOnly ? $row : [$row];
         }
         return $firstOnly ? $result->current() : $result;
-    }
-
-    /**
-     * Get all resources associated with the provided tag query.
-     *
-     * @param string $q      Search query
-     * @param string $source Record source (optional limiter)
-     * @param string $sort   Resource field to sort on (optional)
-     * @param int    $offset Offset for results
-     * @param int    $limit  Limit for results (null for none)
-     * @param bool   $fuzzy  Are we doing an exact or fuzzy search?
-     *
-     * @return array
-     */
-    public function resourceSearch(
-        $q,
-        $source = null,
-        $sort = null,
-        $offset = 0,
-        $limit = null,
-        $fuzzy = true
-    ) {
-        $cb = function ($select) use ($q, $source, $sort, $offset, $limit, $fuzzy) {
-            $select->columns(
-                [
-                    new Expression(
-                        'DISTINCT(?)',
-                        ['resource.id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                ]
-            );
-            $select->join(
-                ['rt' => 'resource_tags'],
-                'tags.id = rt.tag_id',
-                []
-            );
-            $select->join(
-                ['resource' => 'resource'],
-                'rt.resource_id = resource.id',
-                Select::SQL_STAR
-            );
-            if ($fuzzy) {
-                $select->where->literal('lower(tags.tag) like lower(?)', [$q]);
-            } elseif (!$this->caseSensitive) {
-                $select->where->literal('lower(tags.tag) = lower(?)', [$q]);
-            } else {
-                $select->where->equalTo('tags.tag', $q);
-            }
-            // Discard tags assigned to a user list.
-            $select->where->isNotNull('rt.resource_id');
-
-            if (!empty($source)) {
-                $select->where->equalTo('source', $source);
-            }
-
-            if (!empty($sort)) {
-                Resource::applySort($select, $sort);
-            }
-
-            if ($offset > 0) {
-                $select->offset($offset);
-            }
-            if (null !== $limit) {
-                $select->limit($limit);
-            }
-        };
-
-        return $this->select($cb);
     }
 }
