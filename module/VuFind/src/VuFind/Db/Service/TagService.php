@@ -835,7 +835,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
     public function matchText($text)
     {
         $where = [' LOWER(t.tag) LIKE :text AND rt.resource is NOT NULL '];
-        $parameters['text'] = $text . '%';
+        $parameters = ['text' => $text . '%'];
         return $this->getTagList(where: $where, parameters: $parameters);
     }
 

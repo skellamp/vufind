@@ -110,25 +110,6 @@ class Tags extends Gateway implements \VuFind\Db\Service\ServiceAwareInterface
     }
 
     /**
-     * Get the tags that match a string
-     *
-     * @param string $text  Tag to look up.
-     * @param string $sort  Sort/search parameter
-     * @param int    $limit Maximum number of tags
-     *
-     * @return array Array of \VuFind\Db\Row\Tags objects
-     */
-    public function matchText($text, $sort = 'alphabetical', $limit = 100)
-    {
-        $callback = function ($select) use ($text) {
-            $select->where->literal('lower(tag) like lower(?)', [$text . '%']);
-            // Discard tags assigned to a user list.
-            $select->where->isNotNull('resource_tags.resource_id');
-        };
-        return $this->getTagList($sort, $limit, $callback);
-    }
-
-    /**
      * Get all resources associated with the provided tag query.
      *
      * @param string $q      Search query
