@@ -359,11 +359,10 @@ class BrowseController extends AbstractBase implements
                 }
             } else {
                 // Default case: always display tag list for non-alphabetical modes:
-
                 $tagList = $tagService->getTagList(
                     $params['findby'],
                     $this->config->Browse->result_limit,
-                    [' rt.resource is NOT NULL ']
+                    ['rt.resource is NOT NULL']
                 );
                 $resultList = [];
                 foreach ($tagList as $i => $tag) {
