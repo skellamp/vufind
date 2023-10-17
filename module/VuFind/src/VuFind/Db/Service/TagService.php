@@ -924,7 +924,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
         }
 
         if (!empty($sort)) {
-            $dql .= ResourceService::getOrderByClause($dql, $sort);
+            $dql .= ResourceService::getOrderByClause($sort);
         }
 
         $query = $this->entityManager->createQuery($dql);
