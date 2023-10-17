@@ -175,7 +175,7 @@ class UserList extends RowGateway implements
             $tag = $tagService->getByText($tagText);
             $tagService->createLink(
                 null,
-                $tag->id,
+                $tag,
                 $user->id,
                 $this->id
             );

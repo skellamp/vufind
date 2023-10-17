@@ -104,7 +104,7 @@ class Resource extends RowGateway implements
 
             $tagService->createLink(
                 $this->id,
-                $tag->id,
+                $tag,
                 is_object($user) ? $user->id : null,
                 $list_id
             );
