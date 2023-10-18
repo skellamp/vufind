@@ -233,7 +233,7 @@ trait LiveDatabaseTrait
      *
      * @param string $name Name of table to load
      *
-     * @return object
+     * @return \VuFind\Db\Service\AbstractService
      */
     public function getDatabaseService($name)
     {
