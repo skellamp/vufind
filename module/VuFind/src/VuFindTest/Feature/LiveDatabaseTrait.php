@@ -280,7 +280,7 @@ trait LiveDatabaseTrait
             ],
             [
                 'service' => \VuFind\Db\Service\TagService::class,
-                'entity' => \VuFind\Db\Entity\Tag::class,
+                'entity' => \VuFind\Db\Entity\Tags::class,
                 'name' => 'tags',
             ],
         ];
