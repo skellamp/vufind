@@ -117,11 +117,11 @@ abstract class AbstractService
      * @param string $entityClass Entity class.
      * @param int    $id          Id of the entity to be retrieved
      *
-     * @return void
+     * @return ?object
      */
     public function getEntityById($entityClass, $id)
     {
-        $this->entityManager->find(
+        return $this->entityManager->find(
             $this->getEntityClass($entityClass),
             $id
         );
