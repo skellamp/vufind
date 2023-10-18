@@ -110,4 +110,20 @@ abstract class AbstractService
         $this->entityManager->remove($entity);
         $this->entityManager->flush();
     }
+
+    /**
+     * Retrieve an entity by id.
+     *
+     * @param string $entityClass Entity class.
+     * @param int    $id          Id of the entity to be retrieved
+     *
+     * @return void
+     */
+    public function getEntityById($entityClass, $id)
+    {
+        $this->entityManager->find(
+            $this->getEntityClass($entityClass),
+            $id
+        );
+    }
 }
