@@ -126,4 +126,19 @@ abstract class AbstractService
             $id
         );
     }
+
+    /**
+     * Get the row count of a given entity.
+     *
+     * @param string $entityClass Entity class.
+     *
+     * @return int
+     */
+    public function getRowCountForTable($entityClass)
+    {
+        $dql = 'SELECT COUNT(e) FROM ' . $this->getEntityClass($entityClass) . ' e ';
+        $query = $this->entityManager->createQuery($dql);
+        $count = $query->getSingleScalarResult();
+        return $count;
+    }
 }

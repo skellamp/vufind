@@ -31,8 +31,6 @@
 
 namespace VuFindTest\Feature;
 
-use function count;
-
 /**
  * Mix-in for accessing a real database during testing.
  *
@@ -276,17 +274,17 @@ trait LiveDatabaseTrait
         // server)
         $checks = [
             [
-                'table' => \VuFind\Db\Table\User::class,
+                'service' => \VuFind\Db\Service\UserService::class,
                 'name' => 'users',
             ],
             [
-                'table' => \VuFind\Db\Table\Tags::class,
+                'service' => \VuFind\Db\Service\TagService::class,
                 'name' => 'tags',
             ],
         ];
         foreach ($checks as $check) {
-            $table = $test->getTable($check['table']);
-            if (count($table->select()) > 0) {
+            $dbService = $test->getDatabaseService($check['service']);
+            if ($dbService->getRowCountForTable($check['service']) > 0) {
                 self::fail(
                     "Test cannot run with pre-existing {$check['name']} in database!"
                 );
