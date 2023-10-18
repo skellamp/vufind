@@ -71,7 +71,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         Resource::class => ResourceFactory::class,
         Search::class => GatewayFactory::class,
         Session::class => GatewayFactory::class,
-        Tags::class => CaseSensitiveTagsFactory::class,
+        Tags::class => GatewayFactory::class,
         User::class => UserFactory::class,
         UserList::class => UserListFactory::class,
         UserResource::class => GatewayFactory::class,
