@@ -275,16 +275,18 @@ trait LiveDatabaseTrait
         $checks = [
             [
                 'service' => \VuFind\Db\Service\UserService::class,
+                'entity' => \VuFind\Db\Entity\User::class,
                 'name' => 'users',
             ],
             [
                 'service' => \VuFind\Db\Service\TagService::class,
+                'entity' => \VuFind\Db\Entity\Tag::class,
                 'name' => 'tags',
             ],
         ];
         foreach ($checks as $check) {
             $dbService = $test->getDatabaseService($check['service']);
-            if ($dbService->getRowCountForTable($check['service']) > 0) {
+            if ($dbService->getRowCountForTable($check['entity']) > 0) {
                 self::fail(
                     "Test cannot run with pre-existing {$check['name']} in database!"
                 );
