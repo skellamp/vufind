@@ -103,8 +103,8 @@ class Resource extends RowGateway implements
             $tag = $tagService->getByText($tagText);
 
             $tagService->createLink(
-                $this->id,
                 $tag,
+                $this->id,
                 is_object($user) ? $user->id : null,
                 $list_id
             );
@@ -128,7 +128,7 @@ class Resource extends RowGateway implements
         if (!empty($tagText)) {
             $tagIds = [];
             foreach ($tagService->getByText($tagText, false, false) as $tag) {
-                $tagIds[] = $tag->id;
+                $tagIds[] = $tag->getId();
             }
             if (!empty($tagIds)) {
                 $tagService->destroyResourceLinks(

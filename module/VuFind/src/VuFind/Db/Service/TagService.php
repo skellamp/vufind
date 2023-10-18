@@ -96,8 +96,8 @@ class TagService extends AbstractService implements LoggerAwareInterface
     /**
      * Look up a row for the specified resource.
      *
-     * @param int|Resource $resource ID of resource to link up
      * @param int|Tags     $tag      ID of tag to link up
+     * @param int|Resource $resource ID of resource to link up
      * @param int|User     $user     ID of user creating link (optional but recommended)
      * @param int|UserList $list     ID of list to link up (optional)
      * @param \DateTime    $posted   Posted date (optional -- omit for current)
@@ -105,21 +105,25 @@ class TagService extends AbstractService implements LoggerAwareInterface
      * @return void
      */
     public function createLink(
-        $resource,
         $tag,
+        $resource = null,
         $user = null,
         $list = null,
         $posted = null
     ) {
-        $resource = is_object($resource) ? $resource : $this->entityManager->getReference(Resource::class, $resource);
         $tag = is_object($tag) ? $tag : $this->entityManager->getReference(Tags::class, $tag);
-
         $dql = ' SELECT rt FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt ';
+        $dqlWhere = ['rt.tag = :tag '];
+        $parameters = compact('tag');
 
-        $dqlWhere = [];
-        $dqlWhere[] = 'rt.resource = :resource ';
-        $dqlWhere[] = 'rt.tag = :tag ';
-        $parameters = compact('resource', 'tag');
+        if (null !== $resource) {
+            $resource = is_object($resource) ? $resource :
+                $this->entityManager->getReference(Resource::class, $resource);
+            $dqlWhere[] = 'rt.resource = :resource ';
+            $parameters['resource'] = $resource;
+        } else {
+            $dqlWhere[] = 'rt.resource IS NULL ';
+        }
 
         if (null !== $list) {
             $list = is_object($list) ? $list : $this->entityManager->getReference(UserList::class, $list);
@@ -1126,8 +1130,8 @@ class TagService extends AbstractService implements LoggerAwareInterface
         foreach ($result as $current) {
             // Move the link to the target ID:
             $this->createLink(
-                $current->getResource(),
                 $target,
+                $current->getResource(),
                 $current->getUser(),
                 $current->getList(),
                 $current->getPosted()

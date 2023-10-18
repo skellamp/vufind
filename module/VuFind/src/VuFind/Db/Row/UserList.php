@@ -174,8 +174,8 @@ class UserList extends RowGateway implements
             $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
             $tag = $tagService->getByText($tagText);
             $tagService->createLink(
-                null,
                 $tag,
+                null,
                 $user->id,
                 $this->id
             );
