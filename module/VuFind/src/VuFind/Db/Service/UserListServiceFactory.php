@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Factory for ListItems channel provider.
+ * Database userlist service factory
  *
- * PHP version 8
+ * PHP version 7
  *
- * Copyright (C) Villanova University 2019.
+ * Copyright (C) Villanova University 2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -21,30 +21,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * @category VuFind
- * @package  Channels
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @package  Database
+ * @author   Sudharma Kellampalli <skellamp@villanova.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org/wiki/development Wiki
+ * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
 
-namespace VuFind\ChannelProvider;
+namespace VuFind\Db\Service;
 
+use Interop\Container\ContainerInterface;
+use Interop\Container\Exception\ContainerException;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
-use Laminas\ServiceManager\Factory\FactoryInterface;
-use Psr\Container\ContainerExceptionInterface as ContainerException;
-use Psr\Container\ContainerInterface;
 
 /**
- * Factory for ListItems channel provider.
+ * Database userlist service factory
  *
  * @category VuFind
- * @package  Channels
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @package  Database
+ * @author   Sudharma Kellampalli <skellamp@villanova.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org/wiki/development Wiki
+ * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-class ListItemsFactory implements FactoryInterface
+class UserListServiceFactory extends AbstractServiceFactory
 {
     /**
      * Create an object
@@ -65,15 +64,14 @@ class ListItemsFactory implements FactoryInterface
         $requestedName,
         array $options = null
     ) {
-        if ($options !== null) {
+        if (!empty($options)) {
             throw new \Exception('Unexpected options sent to factory!');
         }
-        $sm = $container->get(\VuFind\Db\Service\PluginManager::class);
-        return new $requestedName(
-            $sm->get(\VuFind\Db\Service\UserListService::class),
-            $sm->get(\VuFind\Db\Service\TagService::class),
-            $container->get('ControllerPluginManager')->get('url'),
-            $container->get(\VuFind\Search\Results\PluginManager::class)
+        $session = new \Laminas\Session\Container('List', $sessionManager);
+        return parent::__invoke(
+            $container,
+            $requestedName,
+            [$container->get(\VuFind\Tags::class), $session]
         );
     }
 }

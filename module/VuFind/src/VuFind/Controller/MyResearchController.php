@@ -1065,7 +1065,8 @@ class MyResearchController extends AbstractBase
 
             if ($this->listTagsEnabled()) {
                 if ($list = $results->getListObject()) {
-                    foreach ($list->getListTags() as $tag) {
+                    $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
+                    foreach ($tagService->getForList($list, $list->getUser()) as $tag) {
                         $listTags[$tag['id']] = $tag['tag'];
                     }
                 }
@@ -1087,8 +1088,8 @@ class MyResearchController extends AbstractBase
     /**
      * Process the "edit list" submission.
      *
-     * @param \VuFind\Db\Row\User     $user Logged in user
-     * @param \VuFind\Db\Row\UserList $list List being created/edited
+     * @param \VuFind\Db\Row\User        $user Logged in user
+     * @param \VuFind\Db\Entity\UserList $list List being created/edited
      *
      * @return object|bool                  Response object if redirect is
      * needed, false if form needs to be redisplayed.
@@ -1098,7 +1099,8 @@ class MyResearchController extends AbstractBase
         // Process form within a try..catch so we can handle errors appropriately:
         try {
             $finalId
-                = $list->updateFromRequest($user, $this->getRequest()->getPost());
+                = $this->getDbService(\VuFind\Db\Service\UserListService::class)
+                    ->updateFromRequest($user->id, $list, $this->getRequest()->getPost());
 
             // If the user is in the process of saving a record, send them back
             // to the save screen; otherwise, send them back to the list they
@@ -1165,8 +1167,10 @@ class MyResearchController extends AbstractBase
         // of the ID parameter:
         $id = $this->params()->fromRoute('id', $this->params()->fromQuery('id'));
         $table = $this->getTable('UserList');
+        $listService = $this->getDbService(\VuFind\Db\Service\UserListService::class);
         $newList = ($id == 'NEW');
-        $list = $newList ? $table->getNew($user) : $table->getExisting($id);
+        $userEntity = $listService->getEntityById(\VuFind\Db\Entity\User::class, $user->id);
+        $list = $newList ? $listService->getNew($userEntity) : $listService->getExisting($id);
 
         // Make sure the user isn't fishing for other people's lists:
         if (!$newList && !$list->editAllowed($user)) {
@@ -1182,7 +1186,8 @@ class MyResearchController extends AbstractBase
 
         $listTags = null;
         if ($this->listTagsEnabled() && !$newList) {
-            $listTags = $user->formatTagString($list->getListTags());
+            $tags = $this->getDbService(\VuFind\Db\Service\TagService::class)->getForList($list, $user->id);
+            $listTags = $user->formatTagString($tags);
         }
         // Send the list to the view:
         return $this->createViewModel(
