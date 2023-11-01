@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) Villanova University 2016.
+ * Copyright (C) Villanova University 2016-2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -59,8 +59,9 @@ class FavoritesServiceFactory implements FactoryInterface
     public function __invoke(ContainerInterface $sm, $name, array $options = null)
     {
         $tableManager = $sm->get(\VuFind\Db\Table\PluginManager::class);
+        $serviceManager = $sm->get(\VuFind\Db\Service\PluginManager::class);
         return new FavoritesService(
-            $tableManager->get('userlist'),
+            $serviceManager->get(\VuFind\Db\Service\UserListService::class),
             $tableManager->get('resource'),
             $sm->get(\VuFind\Record\Cache::class)
         );

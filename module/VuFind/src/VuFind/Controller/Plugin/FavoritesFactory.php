@@ -72,7 +72,8 @@ class FavoritesFactory implements FactoryInterface
             $container->get(\VuFind\Record\Loader::class),
             $container->get(\VuFind\Record\Cache::class),
             $container->get(\VuFind\Tags::class),
-            $container->get(\VuFind\Favorites\FavoritesService::class)
+            $container->get(\VuFind\Favorites\FavoritesService::class),
+            $container->get(\VuFind\Db\Service\PluginManager::class)
         );
     }
 }

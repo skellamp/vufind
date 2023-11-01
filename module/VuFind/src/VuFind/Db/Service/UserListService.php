@@ -35,6 +35,7 @@ use Laminas\Session\Container;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 use VuFind\Db\Entity\User;
 use VuFind\Db\Entity\UserList;
+use VuFind\Db\Entity\ResourceTags;
 use VuFind\Db\Entity\UserResource;
 use VuFind\Exception\ListPermission as ListPermissionException;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
@@ -42,6 +43,8 @@ use VuFind\Exception\MissingField as MissingFieldException;
 use VuFind\Exception\RecordMissing as RecordMissingException;
 use VuFind\Log\LoggerAwareTrait;
 use VuFind\Tags;
+
+use function is_object;
 
 /**
  * Database service for UserList.
@@ -115,7 +118,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      */
     public function createUserList(): UserList
     {
-        $class = $this->getEntityClass(ResourceTags::class);
+        $class = $this->getEntityClass(UserList::class);
         return new $class();
     }
 
@@ -125,7 +128,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      * @param User|bool $user User object representing owner of
      * new list (or false if not logged in)
      *
-     * @return UserList
+     * @return UserList|bool
      * @throws LoginRequiredException
      */
     public function getNew($user)
@@ -133,10 +136,16 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
         if (!$user) {
             throw new LoginRequiredException('Log in to create lists.');
         }
-
+        $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
         $row = $this->createUserList()
             ->setCreated(new \DateTime())
             ->setUser($user);
+        try {
+            $this->persistEntity($row);
+        } catch (\Exception $e) {
+            $this->logError('Could not save list: ' . $e->getMessage());
+            return false;
+        }
         return $row;
     }
 
@@ -175,19 +184,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
             ->setDescription($request->get('desc'))
             ->setPublic($request->get('public'));
 
-        if (!($user && $user == $list->getId())) {
-            throw new ListPermissionException('list_access_denied');
-        }
-        if (empty($list->getTitle())) {
-            throw new MissingFieldException('list_edit_name_required');
-        }
-
-        try {
-            $this->persistEntity($list);
-        } catch (\Exception $e) {
-            $this->logError('Could not save list: ' . $e->getMessage());
-            return false;
-        }
+        $this->save($list, $user);
 
         $this->rememberLastUsed($list);
 
@@ -199,6 +196,38 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
             }
         }
 
+        return $list->getId();
+    }
+
+    /**
+     * Saves the properties to the database.
+     *
+     * This performs an intelligent insert/update, and reloads the
+     * properties with fresh data from the table on success.
+     *
+     * @param UserList  $list UserList to be saved
+     * @param User|bool $user Logged-in user (false if none)
+     *
+     * @return mixed The primary key value(s), as an associative array if the
+     *     key is compound, or a scalar if the key is single-column.
+     * @throws ListPermissionException
+     * @throws MissingFieldException
+     */
+    public function save($list, $user = false)
+    {
+        if (!$this->editAllowed($user, $list)) {
+            throw new ListPermissionException('list_access_denied');
+        }
+        if (empty($list->getTitle())) {
+            throw new MissingFieldException('list_edit_name_required');
+        }
+        try {
+            $this->persistEntity($list);
+        } catch (\Exception $e) {
+            $this->logError('Could not save list: ' . $e->getMessage());
+            return false;
+        }
+        $this->rememberLastUsed($list);
         return $list->getId();
     }
 
@@ -272,5 +301,140 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
         $query->setParameters($parameters);
         $results = $query->getResult();
         return $results;
+    }
+
+    /**
+     * Get public lists other than the one in array.
+     *
+     * @param array $lists List of public lists.
+     *
+     * @return array
+     */
+    public function getPublicLists($lists)
+    {
+        $dql = 'SELECT ul FROM ' . $this->getEntityClass(UserList::class) . ' ul '
+            . 'WHERE ul NOT IN (:lists) AND ul.public = 1 ';
+        $parameters = compact('lists');
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $results = $query->getResult();
+        return $results;
+    }
+
+    /**
+     * Get all of the lists associated with this user.
+     *
+     * @param User|int $user Id of the user owning the list.
+     *
+     * @return array
+     */
+    public function getLists($user)
+    {
+        $dql = 'SELECT ul, DISTINCT(ur.resource) AS cnt '
+            . 'FROM ' . $this->getEntityClass(UserList::class) . ' ul '
+            . 'LEFT JOIN ' . $this->getEntityClass(UserResource::class) . ' ur WITH ur.list = ul.id '
+            . 'WHERE ul.user =: user '
+            . 'GROUP BY ul '
+            . 'ORDER BY ul.title';
+
+        $parameters = compact('user');
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $results = $query->getResult();
+        return $results;
+    }
+
+    /**
+     * Given an array of item ids, remove them from all lists
+     *
+     * @param User|int|bool $user   Logged-in user (false if none)
+     * @param UserList      $list   Userlist to remove records
+     * @param array         $ids    IDs to remove from the list
+     * @param string        $source Type of resource identified by IDs
+     *
+     * @return void
+     */
+    public function removeResourcesById(
+        $user,
+        $list,
+        $ids,
+        $source = DEFAULT_SEARCH_BACKEND
+    ) {
+        $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
+        if (!$this->editAllowed($user, $list)) {
+            throw new ListPermissionException('list_access_denied');
+        }
+
+        // Retrieve a list of resource IDs:
+        $resources = $this->getDbService(\VuFind\Db\Service\ResourceService::class)
+            ->findResources($ids, $source);
+
+        $resourceIDs = [];
+        foreach ($resources as $current) {
+            $resourceIDs[] = $current->getId();
+        }
+
+        // Remove Resource (related tags are also removed implicitly)
+        $userResourceService = $this->getDbService(\VuFind\Db\Service\UserResourceService::class);
+        $userResourceService->destroyLinks(
+            $user,
+            $resourceIDs,
+            $list
+        );
+    }
+
+    /**
+     * Destroy the list.
+     *
+     * @param UserList      $list  Userlist to destroy
+     * @param User|int|bool $user  Logged-in user (false if none)
+     * @param bool          $force Should we force the delete without
+     *                             checking permissions?
+     *
+     * @return int The number of rows deleted.
+     */
+    public function delete($list, $user = false, $force = false)
+    {
+        $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
+        if (!$force && !$this->editAllowed($user, $list)) {
+            throw new ListPermissionException('list_access_denied');
+        }
+
+        // Remove user_resource and resource_tags rows:
+        $userResourceService = $this->getDbService(\VuFind\Db\Service\UserResourceService::class);
+        $userResourceService->destroyLinks(
+            $user,
+            null,
+            $list
+        );
+
+        // Remove resource_tags rows for list tags:
+        $linker = $this->getDbService(\VuFind\Db\Service\TagService::class);
+        $linker->destroyListLinks($list, $user);
+
+        // Remove the list itself:
+        try {
+            $this->deleteEntity($list);
+        } catch (\Exception $e) {
+            $this->logError('Could not delete UserCard: ' . $e->getMessage());
+            return 0;
+        }
+        return 1;
+    }
+
+    /**
+     * Is the current user allowed to edit this list?
+     *
+     * @param User|int|bool $user Logged-in user (false if none)
+     * @param UserList      $list List to be edited
+     *
+     * @return bool
+     */
+    public function editAllowed($user, $list)
+    {
+        if ($user && $user->getId() == $list->getUser()->getId()) {
+            return true;
+        }
+        return false;
     }
 }

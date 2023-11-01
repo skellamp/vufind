@@ -62,7 +62,7 @@
             <span class="icon-link__label"><?=$this->transEsc('edit_list')?></span>
           </a>
           <div class="btn-group">
-            <a class="btn btn-link dropdown-toggle icon-link" data-toggle="dropdown" href="<?=$this->url('myresearch-deletelist') ?>?listID=<?=urlencode($list->id)?>">
+            <a class="btn btn-link dropdown-toggle icon-link" data-toggle="dropdown" href="<?=$this->url('myresearch-deletelist') ?>?listID=<?=urlencode($list->getId())?>">
               <?=$this->icon('user-list-delete', 'icon-link__icon') ?>
               <span class="icon-link__label"><?=$this->transEsc('delete_list')?></span>
             </a>

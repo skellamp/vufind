@@ -31,6 +31,8 @@ namespace VuFind\Db\Service;
 
 use VuFind\Db\Entity\UserResource;
 
+use function is_array;
+
 /**
  * Database service for UserResource.
  *
@@ -126,5 +128,54 @@ class UserResourceService extends AbstractService
         $query = $this->entityManager->createQuery($dql);
         $stats = current($query->getResult());
         return $stats;
+    }
+
+    /**
+     * Unlink rows for the specified resource. This will also automatically remove
+     * any tags associated with the relationship.
+     *
+     * @param User|int          $user        ID of user removing links
+     * @param string|array|null $resource_id ID (or array of IDs) of resource(s) to
+     *                                       unlink (null for ALL matching
+     *                                       resources)
+     * @param UserList|null     $list        list to unlink (null for ALL matching lists, with the destruction
+     *                                       of all tags associated with the $resource_id value; true for ALL
+     *                                       matching lists, but retaining any tags associated with the
+     *                                       $resource_id independently of lists)
+     *
+     * @return void
+     */
+    public function destroyLinks($user, $resource_id, $list = null)
+    {
+        // Remove any tags associated with the links we are removing; we don't
+        // want to leave orphaned tags in the resource_tags table after we have
+        // cleared out favorites in user_resource!
+        $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
+        $tagService->destroyResourceLinks($resource_id, $user, $list);
+
+        $dql = 'DELETE FROM ' . $this->getEntityClass(UserResource::class) . ' ur ';
+        $dqlWhere = ['ur.user = :user '];
+        $parameters = compact('user');
+        if (null !== $resource_id) {
+            if (!is_array($resource_id)) {
+                $resource_id = [$resource_id];
+            }
+            $dqlWhere[] = ' ur.resource IN (:resource_id) ';
+            $parameters['resource_id'] = $resource_id;
+        }
+
+        // null or true values of $list have different meanings in the
+        // context of the $tagService->destroyResourceLinks() call above, since
+        // some tags have a null $list value. In the case of user_resource
+        // rows, however, every row has a non-null $list value, so the
+        // two cases are equivalent and may be handled identically.
+        if (null !== $list && true !== $list) {
+            $dqlWhere[] = ' ur.list = list ';
+            $parameters['list'] = $list;
+        }
+        $dql .= ' WHERE ' . implode(' AND ', $dqlWhere);
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $query->execute();
     }
 }

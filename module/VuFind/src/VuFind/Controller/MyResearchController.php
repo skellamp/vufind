@@ -807,8 +807,7 @@ class MyResearchController extends AbstractBase
         if (empty($listID)) {
             $list = false;
         } else {
-            $table = $this->getTable('UserList');
-            $list = $table->getExisting($listID);
+            $list = $this->getListService()->getExisting($listID);
         }
         return $this->createViewModel(
             [
@@ -845,9 +844,9 @@ class MyResearchController extends AbstractBase
         // Perform delete and send appropriate flash message:
         if (null !== $listID) {
             // ...Specific List
-            $table = $this->getTable('UserList');
-            $list = $table->getExisting($listID);
-            $list->removeResourcesById($user, [$id], $source);
+            $listService = $this->getListService();
+            $list = $listService->getExisting($listID);
+            $listService->removeResourcesById($user->id, $list, [$id], $source);
             $this->flashMessenger()->addMessage('Item removed from list', 'success');
         } else {
             // ...My Favorites
@@ -958,13 +957,13 @@ class MyResearchController extends AbstractBase
         foreach ($userResources as $current) {
             $containingLists[] = $current->list_id;
         }
-
         // Send non-containing lists to the view for user selection:
-        $userLists = $user->getLists();
+        $userLists = $this->getListService()->getLists($user->id);
         $lists = [];
         foreach ($userLists as $userList) {
-            if (!in_array($userList->id, $containingLists)) {
-                $lists[$userList->id] = $userList->title;
+            $list = $userList[0];
+            if (!in_array($list->getId(), $containingLists)) {
+                $lists[$list->getId()] = $list->getTitle();
             }
         }
 
@@ -1098,9 +1097,7 @@ class MyResearchController extends AbstractBase
     {
         // Process form within a try..catch so we can handle errors appropriately:
         try {
-            $finalId
-                = $this->getDbService(\VuFind\Db\Service\UserListService::class)
-                    ->updateFromRequest($user->id, $list, $this->getRequest()->getPost());
+            $finalId = $this->getListService()->updateFromRequest($user->id, $list, $this->getRequest()->getPost());
 
             // If the user is in the process of saving a record, send them back
             // to the save screen; otherwise, send them back to the list they
@@ -1166,14 +1163,12 @@ class MyResearchController extends AbstractBase
         // Is this a new list or an existing list?  Handle the special 'NEW' value
         // of the ID parameter:
         $id = $this->params()->fromRoute('id', $this->params()->fromQuery('id'));
-        $table = $this->getTable('UserList');
-        $listService = $this->getDbService(\VuFind\Db\Service\UserListService::class);
+        $listService = $this->getListService();
         $newList = ($id == 'NEW');
-        $userEntity = $listService->getEntityById(\VuFind\Db\Entity\User::class, $user->id);
-        $list = $newList ? $listService->getNew($userEntity) : $listService->getExisting($id);
+        $list = $newList ? $listService->getNew($user->id) : $listService->getExisting($id);
 
         // Make sure the user isn't fishing for other people's lists:
-        if (!$newList && !$list->editAllowed($user)) {
+        if (!$newList && !$listService->editAllowed($user, $list)) {
             throw new ListPermissionException('Access denied.');
         }
 
@@ -1250,9 +1245,9 @@ class MyResearchController extends AbstractBase
         );
         if ($confirm) {
             try {
-                $table = $this->getTable('UserList');
-                $list = $table->getExisting($listID);
-                $list->delete($this->getUser());
+                $listService = $this->getListService();
+                $list = $listService->getExisting($listID);
+                $listService->delete($list, $this->getUser());
 
                 // Success Message
                 $this->flashMessenger()->addMessage('fav_list_delete', 'success');
@@ -2271,5 +2266,15 @@ class MyResearchController extends AbstractBase
                 ]
             );
         }
+    }
+
+    /**
+     * Get userlist database service
+     *
+     * @return \VuFind\Db\Service\AbstractService
+     */
+    protected function getListService()
+    {
+        return $this->getDbService(\VuFind\Db\Service\UserListService::class);
     }
 }

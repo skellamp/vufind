@@ -346,4 +346,22 @@ class ResourceService extends AbstractService implements \VuFind\Db\Service\Serv
         }
         return $orderByClause;
     }
+
+    /**
+     * Look up a rowset for a set of specified resources.
+     *
+     * @param array  $ids    Array of IDs
+     * @param string $source Source of records to look up
+     *
+     * @return array
+     */
+    public function findResources($ids, $source = DEFAULT_SEARCH_BACKEND)
+    {
+        $repo = $this->entityManager->getRepository($this->getEntityClass(Resource::class));
+        $criteria = [
+            'recordId' => $ids,
+            'source' => $source,
+        ];
+        return $repo->findBy($criteria);
+    }
 }

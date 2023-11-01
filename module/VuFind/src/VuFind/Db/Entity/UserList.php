@@ -29,6 +29,7 @@
 
 namespace VuFind\Db\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -95,11 +96,11 @@ class UserList implements EntityInterface
     /**
      * Flag to indicate whether or not the list is public.
      *
-     * @var bool
+     * @var int
      *
      * @ORM\Column(name="public", type="boolean", nullable=false)
      */
-    protected $public = '0';
+    protected $public = 0;
 
     /**
      * User ID.
@@ -122,5 +123,130 @@ class UserList implements EntityInterface
     public function getId(): int
     {
         return $this->id;
+    }
+
+    /**
+     * Is this a public list?
+     *
+     * @return bool
+     */
+    public function isPublic()
+    {
+        return isset($this->public) && ($this->public == 1);
+    }
+
+    /**
+     * Userlist title setter
+     *
+     * @param string $title List title
+     *
+     * @return UserList
+     */
+    public function setTitle(string $title): UserList
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    /**
+     * Get list title
+     *
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    /**
+     * Set description of the list
+     *
+     * @param ?string $description List description
+     *
+     * @return UserList
+     */
+    public function setDescription(?string $description): UserList
+    {
+        $this->description = $description;
+        return $this;
+    }
+
+    /**
+     * Get description of the list
+     *
+     * @return ?string
+     */
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    /**
+     * Set the public list flag
+     *
+     * @param int $public Public flag
+     *
+     * @return UserList
+     */
+    public function setPublic(int $public): UserList
+    {
+        $this->public = $public;
+        return $this;
+    }
+
+    /**
+     * Get the public flag
+     *
+     * @return int
+     */
+    public function getPublic(): int
+    {
+        return $this->public;
+    }
+
+    /**
+     * User setter.
+     *
+     * @param ?User $user User object
+     *
+     * @return UserList
+     */
+    public function setUser(?User $user): UserList
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * User getter
+     *
+     * @return User
+     */
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    /**
+     * Created setter.
+     *
+     * @param Datetime $dateTime Created date
+     *
+     * @return UserList
+     */
+    public function setCreated(DateTime $dateTime): UserList
+    {
+        $this->created = $dateTime;
+        return $this;
+    }
+
+    /**
+     * Created getter
+     *
+     * @return Datetime
+     */
+    public function getCreated(): Datetime
+    {
+        return $this->created;
     }
 }

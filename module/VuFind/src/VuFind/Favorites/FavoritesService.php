@@ -29,8 +29,8 @@
 
 namespace VuFind\Favorites;
 
+use VuFind\Db\Service\UserListService as ListService;
 use VuFind\Db\Table\Resource as ResourceTable;
-use VuFind\Db\Table\UserList as UserListTable;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
 use VuFind\Record\Cache as RecordCache;
 use VuFind\RecordDriver\AbstractBase as RecordDriver;
@@ -63,26 +63,26 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
     protected $resourceTable;
 
     /**
-     * UserList database table
+     * UserList database service
      *
-     * @var UserListTable
+     * @var ListService
      */
-    protected $userListTable;
+    protected $listService;
 
     /**
      * Constructor
      *
-     * @param UserListTable $userList UserList table object
-     * @param ResourceTable $resource Resource table object
-     * @param RecordCache   $cache    Record cache
+     * @param ListService   $listService UserList service object
+     * @param ResourceTable $resource    Resource table object
+     * @param RecordCache   $cache       Record cache
      */
     public function __construct(
-        UserListTable $userList,
+        ListService $listService,
         ResourceTable $resource,
         RecordCache $cache = null
     ) {
         $this->recordCache = $cache;
-        $this->userListTable = $userList;
+        $this->listService = $listService;
         $this->resourceTable = $resource;
     }
 
@@ -99,16 +99,16 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
     public function getListObject($listId, \VuFind\Db\Row\User $user)
     {
         if (empty($listId) || $listId == 'NEW') {
-            $list = $this->userListTable->getNew($user);
-            $list->title = $this->translate('My Favorites');
-            $list->save($user);
+            $list = $this->listService->getNew($user->id);
+            $list->setTitle($this->translate('My Favorites'));
+            $this->listService->save($list, $user);
         } else {
-            $list = $this->userListTable->getExisting($listId);
+            $list = $this->listService->getExisting($listId);
             // Validate incoming list ID:
-            if (!$list->editAllowed($user)) {
+            if (!$this->listService->editAllowed($user, $list)) {
                 throw new \VuFind\Exception\ListPermission('Access denied.');
             }
-            $list->rememberLastUsed(); // handled by save() in other case
+            $this->listService->rememberLastUsed($list); // handled by save() in other case
         }
         return $list;
     }

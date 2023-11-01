@@ -246,7 +246,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
     ) {
         $tag = (array)$tag;
         $listId = $listId ? (array)$listId : null;
-        $dql = 'SELECT IDENTITY(rt.list) as list '
+        $dql = 'SELECT rt.list '
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'JOIN rt.tag t '
             . 'JOIN rt.list l '
@@ -285,7 +285,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
         $dql .= 'ORDER BY rt.list';
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
-        $result = $query->getSingleColumnResult();
+        $result = $query->getResult();
         return $result;
     }
 
@@ -1015,13 +1015,13 @@ class TagService extends AbstractService implements LoggerAwareInterface
      * the returned list WILL NOT include tags attached to records that are not
      * saved in favorites lists.
      *
-     * @param string $userId     User ID to look up.
-     * @param string $resourceId Filter for tags tied to a specific resource (null
-     * for no filter).
-     * @param int    $listId     Filter for tags tied to a specific list (null for no
-     * filter).
-     * @param string $source     Filter for tags tied to a specific record source
-     * (null for no filter).
+     * @param string|User  $userId     User ID to look up.
+     * @param string       $resourceId Filter for tags tied to a specific resource (null
+     *                                 for no filter).
+     * @param int|UserList $listId     Filter for tags tied to a specific list (null for no
+     *                                 filter).
+     * @param string       $source     Filter for tags tied to a specific record source
+     *                                 (null for no filter).
      *
      * @return array
      */
@@ -1062,8 +1062,8 @@ class TagService extends AbstractService implements LoggerAwareInterface
     /**
      * Get tags assigned to a user list.
      *
-     * @param int    $listId List ID
-     * @param string $userId User ID to look up (null for no filter).
+     * @param int|UserList $listId List ID
+     * @param string|User  $userId User ID to look up (null for no filter).
      *
      * @return array
      */

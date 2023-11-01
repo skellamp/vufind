@@ -369,8 +369,8 @@ class User extends RowGateway implements
      * Add/update a resource in the user's account.
      *
      * @param \VuFind\Db\Row\Resource $resource        The resource to add/update
-     * @param \VuFind\Db\Row\UserList $list            The list to store the resource
-     * in.
+     * @param int                     $list            The list to store the resource
+     *                                                 in.
      * @param array                   $tagArray        An array of tags to associate
      * with the resource.
      * @param string                  $notes           User notes about the resource.
@@ -389,17 +389,17 @@ class User extends RowGateway implements
         // Create the resource link if it doesn't exist and update the notes in any
         // case:
         $linkTable = $this->getDbTable('UserResource');
-        $linkTable->createOrUpdateLink($resource->id, $this->id, $list->id, $notes);
+        $linkTable->createOrUpdateLink($resource->id, $this->id, $list, $notes);
 
         // If we're replacing existing tags, delete the old ones before adding the
         // new ones:
         if ($replaceExisting) {
-            $resource->deleteTags($this, $list->id);
+            $resource->deleteTags($this, $list);
         }
 
         // Add the new tags:
         foreach ($tagArray as $tag) {
-            $resource->addTag($tag, $this, $list->id);
+            $resource->addTag($tag, $this, $list);
         }
     }
 
@@ -613,13 +613,10 @@ class User extends RowGateway implements
     public function delete($removeComments = true, $removeRatings = true)
     {
         // Remove all lists owned by the user:
-        $lists = $this->getLists();
-        $table = $this->getDbTable('UserList');
+        $listService = $this->getDbService(\VuFind\Db\Service\UserListService::class);
+        $lists = $listService->getLists($this->id);
         foreach ($lists as $current) {
-            // The rows returned by getLists() are read-only, so we need to retrieve
-            // a new object for each row in order to perform a delete operation:
-            $list = $table->getExisting($current->id);
-            $list->delete($this, true);
+            $listService->delete($current[0], $this->id, true);
         }
         $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
         $tagService->destroyResourceLinks(null, $this->id);

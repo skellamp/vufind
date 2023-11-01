@@ -108,7 +108,7 @@ class Results extends BaseResults implements AuthorizationServiceAwareInterface
     ) {
         parent::__construct($params, $searchService, $recordLoader);
         $this->resourceTable = $resourceTable;
-        $this->listService = $listService();
+        $this->listService = $listService;
     }
 
     /**

@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) Villanova University 2010.
+ * Copyright (C) Villanova University 2010 - 2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -34,6 +34,7 @@ use VuFind\Exception\LoginRequired as LoginRequiredException;
 use VuFind\Favorites\FavoritesService;
 use VuFind\Record\Cache;
 use VuFind\Record\Loader;
+use VuFind\ServiceManager\AbstractPluginManager as PluginManager;
 use VuFind\Tags;
 
 /**
@@ -76,6 +77,13 @@ class Favorites extends \Laminas\Mvc\Controller\Plugin\AbstractPlugin
     protected $favoritesService;
 
     /**
+     * Database service pluginManager
+     *
+     * @var PluginManager
+     */
+    protected $servicePluginManager;
+
+    /**
      * Constructor
      *
      * @param Loader           $loader    Record loader
@@ -83,12 +91,18 @@ class Favorites extends \Laminas\Mvc\Controller\Plugin\AbstractPlugin
      * @param Tags             $tags      Tag parser
      * @param FavoritesService $favorites Favorites service
      */
-    public function __construct(Loader $loader, Cache $cache, Tags $tags, FavoritesService $favorites)
-    {
+    public function __construct(
+        Loader $loader,
+        Cache $cache,
+        Tags $tags,
+        FavoritesService $favorites,
+        PluginManager $servicePluginManager
+    ) {
         $this->loader = $loader;
         $this->cache = $cache;
         $this->tags = $tags;
         $this->favoritesService = $favorites;
+        $this->servicePluginManager = $servicePluginManager;
     }
 
     /**
@@ -152,7 +166,7 @@ class Favorites extends \Laminas\Mvc\Controller\Plugin\AbstractPlugin
             // Add the information to the user's account:
             $tags = isset($params['mytags'])
                 ? $this->tags->parse($params['mytags']) : [];
-            $user->saveResource($resource, $list, $tags, '', false);
+            $user->saveResource($resource, $list->getId(), $tags, '', false);
 
             // Collect record IDs for caching
             if ($this->cache->isCachable($resource->source)) {
@@ -161,7 +175,7 @@ class Favorites extends \Laminas\Mvc\Controller\Plugin\AbstractPlugin
         }
 
         $this->cacheBatch($cacheRecordIds);
-        return ['listId' => $list->id];
+        return ['listId' => $list->getId()];
     }
 
     /**
@@ -193,10 +207,10 @@ class Favorites extends \Laminas\Mvc\Controller\Plugin\AbstractPlugin
                 $user->removeResourcesById($ids, $source);
             }
         } else {
-            $table = $this->getController()->getTable('UserList');
-            $list = $table->getExisting($listID);
+            $listService = $this->servicePluginManager->get(\VuFind\Db\Service\UserListService::class);
+            $list = $listService->getExisting($listID);
             foreach ($sorted as $source => $ids) {
-                $list->removeResourcesById($user, $ids, $source);
+                $listService->removeResourcesById($user, $list, $ids, $source);
             }
         }
     }

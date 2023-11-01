@@ -72,7 +72,8 @@ class ResultsFactory extends \VuFind\Search\Results\ResultsFactory
         $obj = parent::__invoke(
             $container,
             $requestedName,
-            [$tm->get('Resource'),
+            [
+             $tm->get('Resource'),
              $sm->get(\VuFind\Db\Service\UserListService::class),
             ]
         );

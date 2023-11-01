@@ -86,11 +86,11 @@ class ListItems extends AbstractChannelProvider
     protected $initialListsToDisplay;
 
     /**
-     * UserList table
+     * UserList database service
      *
-     * @var \VuFind\Db\Table\UserList
+     * @var \VuFind\Db\Service\UserListService
      */
-    protected $userList;
+    protected $listService;
 
     /**
      * Tag database service
@@ -116,7 +116,7 @@ class ListItems extends AbstractChannelProvider
     /**
      * Constructor
      *
-     * @param \VuFind\Db\Table\UserList            $userList       UserList table
+     * @param \VuFind\Db\Service\UserListService   $listService    UserList table
      * @param \VuFind\Db\Service\TagService        $tagService     Tag database service
      * @param Url                                  $url            URL helper
      * @param \VuFind\Search\Results\PluginManager $resultsManager Results manager
@@ -124,13 +124,13 @@ class ListItems extends AbstractChannelProvider
      * (optional)
      */
     public function __construct(
-        \VuFind\Db\Table\UserList $userList,
+        \VuFind\Db\Service\TagService $listService,
         \VuFind\Db\Service\TagService $tagService,
         Url $url,
         \VuFind\Search\Results\PluginManager $resultsManager,
         array $options = []
     ) {
-        $this->userList = $userList;
+        $this->listService = $listService;
         $this->tagService = $tagService;
         $this->url = $url;
         $this->resultsManager = $resultsManager;
@@ -222,8 +222,8 @@ class ListItems extends AbstractChannelProvider
     {
         $lists = [];
         foreach ($ids as $id) {
-            $list = $this->userList->getExisting($id);
-            if ($list->public) {
+            $list = $this->listService->getExisting($id);
+            if ($list->getPublic()) {
                 $lists[] = $list;
             }
         }
@@ -239,22 +239,11 @@ class ListItems extends AbstractChannelProvider
      */
     protected function addPublicLists($lists)
     {
+        $publicLists = [];
         if ($this->displayPublicLists) {
-            $resultIds = [];
-            foreach ($lists as $list) {
-                $resultIds[] = $list->id;
-            }
-            $callback = function ($select) use ($resultIds) {
-                $select->where->equalTo('public', 1);
-                if (!empty($resultIds)) {
-                    $select->where->notIn('id', $resultIds);
-                }
-            };
-            foreach ($this->userList->select($callback) as $list) {
-                $lists[] = $list;
-            }
+            $publicLists = $this->listService->getPublicLists();
         }
-        return $lists;
+        return array_merge($lists, $publicLists);
     }
 
     /**
@@ -282,32 +271,20 @@ class ListItems extends AbstractChannelProvider
     protected function getListsByTagAndId()
     {
         // Get public lists by search criteria
-        $lists = $this->tagService->getListsForTag(
+        $result = $this->tagService->getListsForTag(
             $this->tags,
             $this->ids,
             true,
             $this->andTags
         );
 
-        // Format result set into an array:
-        $result = [];
-        if (count($lists)) {
-            $callback = function ($select) use ($lists) {
-                $select->where->in('id', $lists);
-            };
-
-            foreach ($this->userList->select($callback) as $list) {
-                $result[] = $list;
-            }
-        }
-
         // Sort lists by ID list, if necessary:
         if (!empty($result) && $this->ids) {
             $orderIds = (array)$this->ids;
             $sortFn = function ($left, $right) use ($orderIds) {
                 return
-                    array_search($left->id, $orderIds)
-                    <=> array_search($right->id, $orderIds);
+                    array_search($left->getId(), $orderIds)
+                    <=> array_search($right->getId(), $orderIds);
             };
             usort($result, $sortFn);
         }
@@ -326,21 +303,21 @@ class ListItems extends AbstractChannelProvider
     protected function getChannelFromList($list, $tokenOnly)
     {
         $retVal = [
-            'title' => $list->title,
+            'title' => $list->getTitle(),
             'providerId' => $this->providerId,
-            'token' => $list->id,
+            'token' => $list->getId(),
             'links' => [],
         ];
         if ($tokenOnly) {
             return $retVal;
         }
         $results = $this->resultsManager->get('Favorites');
-        $results->getParams()->initFromRequest(new Parameters(['id' => $list->id]));
+        $results->getParams()->initFromRequest(new Parameters(['id' => $list->getId()]));
         $retVal['contents'] = $this->summarizeRecordDrivers($results->getResults());
         $retVal['links'][] = [
             'label' => 'channel_search',
             'icon' => 'fa-list',
-            'url' => $this->url->fromRoute('userList', ['id' => $list->id]),
+            'url' => $this->url->fromRoute('userList', ['id' => $list->getId()]),
         ];
         return $retVal;
     }
