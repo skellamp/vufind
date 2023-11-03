@@ -96,11 +96,11 @@ class UserList implements EntityInterface
     /**
      * Flag to indicate whether or not the list is public.
      *
-     * @var int
+     * @var bool
      *
      * @ORM\Column(name="public", type="boolean", nullable=false)
      */
-    protected $public = 0;
+    protected $public = false;
 
     /**
      * User ID.
@@ -118,9 +118,9 @@ class UserList implements EntityInterface
     /**
      * Id getter
      *
-     * @return int
+     * @return ?int
      */
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -132,7 +132,7 @@ class UserList implements EntityInterface
      */
     public function isPublic()
     {
-        return isset($this->public) && ($this->public == 1);
+        return isset($this->public) && ($this->public == true);
     }
 
     /**
@@ -151,9 +151,9 @@ class UserList implements EntityInterface
     /**
      * Get list title
      *
-     * @return string
+     * @return ?string
      */
-    public function getTitle(): string
+    public function getTitle(): ?string
     {
         return $this->title;
     }
@@ -184,11 +184,11 @@ class UserList implements EntityInterface
     /**
      * Set the public list flag
      *
-     * @param int $public Public flag
+     * @param bool $public Public flag
      *
      * @return UserList
      */
-    public function setPublic(int $public): UserList
+    public function setPublic(bool $public): UserList
     {
         $this->public = $public;
         return $this;
@@ -197,9 +197,9 @@ class UserList implements EntityInterface
     /**
      * Get the public flag
      *
-     * @return int
+     * @return bool
      */
-    public function getPublic(): int
+    public function getPublic(): bool
     {
         return $this->public;
     }
@@ -248,5 +248,23 @@ class UserList implements EntityInterface
     public function getCreated(): Datetime
     {
         return $this->created;
+    }
+
+    /**
+     * Is the current user allowed to edit this list?
+     *
+     * @param User|int|bool $user Logged-in user (false if none)
+     *
+     * @return bool
+     */
+    public function editAllowed($user)
+    {
+        if (is_object($user) && get_class($user) === User::class && $user->getId() == $this->getUser()->getId()) {
+            return true;
+        }
+        if ($user && $user == $this->getUser()->getId()) {
+            return true;
+        }
+        return false;
     }
 }

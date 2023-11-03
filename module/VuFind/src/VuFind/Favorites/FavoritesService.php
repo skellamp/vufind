@@ -105,7 +105,7 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
         } else {
             $list = $this->listService->getExisting($listId);
             // Validate incoming list ID:
-            if (!$this->listService->editAllowed($user, $list)) {
+            if (!$list->editAllowed($user)) {
                 throw new \VuFind\Exception\ListPermission('Access denied.');
             }
             $this->listService->rememberLastUsed($list); // handled by save() in other case
