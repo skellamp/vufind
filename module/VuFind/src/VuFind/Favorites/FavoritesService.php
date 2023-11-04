@@ -92,7 +92,7 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
      * @param string              $listId List ID (or 'NEW')
      * @param \VuFind\Db\Row\User $user   The user saving the record
      *
-     * @return \VuFind\Db\Row\UserList
+     * @return \VuFind\Db\Entity\UserList
      *
      * @throws \VuFind\Exception\ListPermission
      */
@@ -105,7 +105,7 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
         } else {
             $list = $this->listService->getExisting($listId);
             // Validate incoming list ID:
-            if (!$list->editAllowed($user)) {
+            if (!$list->editAllowed($user->id)) {
                 throw new \VuFind\Exception\ListPermission('Access denied.');
             }
             $this->listService->rememberLastUsed($list); // handled by save() in other case
