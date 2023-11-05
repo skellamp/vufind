@@ -35,6 +35,8 @@ use VuFind\Date\Converter as DateConverter;
 use VuFind\Date\DateException;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 use VuFind\Db\Entity\Resource;
+use VuFind\Db\Entity\User;
+use VuFind\Db\Entity\UserList;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
 use VuFind\Log\LoggerAwareTrait;
 use VuFind\Record\Loader;
@@ -363,5 +365,32 @@ class ResourceService extends AbstractService implements \VuFind\Db\Service\Serv
             'source' => $source,
         ];
         return $repo->findBy($criteria);
+    }
+
+    /**
+     * Add a tag to the current resource.
+     *
+     * @param Resource|int $resource Resource associated.
+     * @param string       $tagText  The tag to save.
+     * @param User|int     $user     The user posting the tag.
+     * @param ?UserList    $list     The list associated with the tag
+     *                               (optional).
+     *
+     * @return void
+     */
+    public function addTag($resource, $tagText, $user, $list = null)
+    {
+        $tagText = trim($tagText);
+        if (!empty($tagText)) {
+            $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
+            $tag = $tagService->getByText($tagText);
+
+            $tagService->createLink(
+                $tag,
+                $resource,
+                $user,
+                $list
+            );
+        }
     }
 }

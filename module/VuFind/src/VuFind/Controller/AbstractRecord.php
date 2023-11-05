@@ -507,7 +507,7 @@ class AbstractRecord extends AbstractBase
                 $nonContainingLists[] = $list;
             }
         }
-        
+
         $view = $this->createViewModel(
             [
                 'containingLists' => $containingLists,

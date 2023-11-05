@@ -33,9 +33,9 @@ use Doctrine\ORM\EntityManager;
 use Laminas\Log\LoggerAwareInterface;
 use Laminas\Session\Container;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
+use VuFind\Db\Entity\Resource;
 use VuFind\Db\Entity\User;
 use VuFind\Db\Entity\UserList;
-use VuFind\Db\Entity\ResourceTags;
 use VuFind\Db\Entity\UserResource;
 use VuFind\Exception\ListPermission as ListPermissionException;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
@@ -281,7 +281,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
     ) {
         $dql = 'SELECT DISTINCT(ul.id), ul FROM ' . $this->getEntityClass(UserList::class) . ' ul '
             . 'JOIN ' . $this->getEntityClass(UserResource::class) . ' ur WITH ur.list = ul.id '
-            . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = ul.resource '
+            . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = ur.resource '
             . 'WHERE r.recordId = :resourceId AND r.source = :source ';
 
         $parameters = compact('resourceId', 'source');

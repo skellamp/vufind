@@ -29,9 +29,15 @@
 
 namespace VuFind\Db\Service;
 
+use Laminas\Log\LoggerAwareInterface;
+use VuFind\Db\Entity\Resource;
+use VuFind\Db\Entity\User;
+use VuFind\Db\Entity\UserList;
 use VuFind\Db\Entity\UserResource;
+use VuFind\Log\LoggerAwareTrait;
 
 use function is_array;
+use function is_object;
 
 /**
  * Database service for UserResource.
@@ -42,8 +48,11 @@ use function is_array;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-class UserResourceService extends AbstractService
+class UserResourceService extends AbstractService implements LoggerAwareInterface, ServiceAwareInterface
 {
+    use LoggerAwareTrait;
+    use ServiceAwareTrait;
+
     /**
      * Get a list of duplicate rows (this sometimes happens after merging IDs,
      * for example after a Summon resource ID changes).
@@ -177,5 +186,59 @@ class UserResourceService extends AbstractService
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         $query->execute();
+    }
+
+    /**
+     * Create link if one does not exist; update notes if one does.
+     *
+     * @param Resource|int $resource ID of resource to link up
+     * @param User|int     $user     ID of user creating link
+     * @param UserList|int $list     ID of list to link up
+     * @param string       $notes    Notes to associate with link
+     *
+     * @return UserResource|false
+     */
+    public function createOrUpdateLink(
+        $resource,
+        $user,
+        $list,
+        $notes = ''
+    ) {
+        $resource = is_object($resource) ? $resource : $this->entityManager->getReference(Resource::class, $resource);
+        $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
+        $params = [
+            'resource' => $resource,
+            'list' => $list,
+            'user' => $user,
+        ];
+        $result = current($this->entityManager->getRepository($this->getEntityClass(UserResource::class))
+            ->findBy($params));
+
+        if (empty($result)) {
+            $result = $this->createUserResource()
+                ->setResource($resource)
+                ->setUser($user)
+                ->setList($list);
+        }
+        // Update the notes:
+        $result->setNotes($notes);
+        try {
+            $this->persistEntity($result);
+        } catch (\Exception $e) {
+            $this->logError('Could not save user resource: ' . $e->getMessage());
+            return false;
+        }
+        return $result;
+    }
+
+    /**
+     * Create a userResource entity object.
+     *
+     * @return UserResource
+     */
+    public function createUserResource(): UserResource
+    {
+        $class = $this->getEntityClass(UserResource::class);
+        return new $class();
     }
 }

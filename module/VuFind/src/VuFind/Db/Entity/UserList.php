@@ -32,6 +32,8 @@ namespace VuFind\Db\Entity;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
+use function is_object;
+
 /**
  * UserList
  *
@@ -259,7 +261,7 @@ class UserList implements EntityInterface
      */
     public function editAllowed($user)
     {
-        if (is_object($user) && get_class($user) === User::class && $user->getId() == $this->getUser()->getId()) {
+        if (is_object($user) && $user::class === User::class && $user->getId() == $this->getUser()->getId()) {
             return true;
         }
         if ($user && $user == $this->getUser()->getId()) {
