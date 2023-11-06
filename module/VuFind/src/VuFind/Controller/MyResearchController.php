@@ -1247,7 +1247,7 @@ class MyResearchController extends AbstractBase
             try {
                 $listService = $this->getListService();
                 $list = $listService->getExisting($listID);
-                $listService->delete($list, $this->getUser());
+                $listService->delete($list, $this->getUser()->id);
 
                 // Success Message
                 $this->flashMessenger()->addMessage('fav_list_delete', 'success');

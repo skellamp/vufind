@@ -179,7 +179,7 @@ class UserResourceService extends AbstractService implements LoggerAwareInterfac
         // rows, however, every row has a non-null $list value, so the
         // two cases are equivalent and may be handled identically.
         if (null !== $list && true !== $list) {
-            $dqlWhere[] = ' ur.list = list ';
+            $dqlWhere[] = ' ur.list = :list ';
             $parameters['list'] = $list;
         }
         $dql .= ' WHERE ' . implode(' AND ', $dqlWhere);
