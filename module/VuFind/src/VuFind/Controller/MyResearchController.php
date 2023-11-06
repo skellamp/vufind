@@ -1168,7 +1168,7 @@ class MyResearchController extends AbstractBase
         $list = $newList ? $listService->getNew($user->id) : $listService->getExisting($id);
 
         // Make sure the user isn't fishing for other people's lists:
-        if (!$newList && !$list->editAllowed($user)) {
+        if (!$newList && !$list->editAllowed($user->id)) {
             throw new ListPermissionException('Access denied.');
         }
 
