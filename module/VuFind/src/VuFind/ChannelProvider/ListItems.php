@@ -31,6 +31,7 @@ namespace VuFind\ChannelProvider;
 
 use Laminas\Mvc\Controller\Plugin\Url;
 use Laminas\Stdlib\Parameters;
+use VuFind\Db\Entity\UserList;
 use VuFind\RecordDriver\AbstractBase as RecordDriver;
 use VuFind\Search\Base\Results;
 
@@ -271,12 +272,20 @@ class ListItems extends AbstractChannelProvider
     protected function getListsByTagAndId()
     {
         // Get public lists by search criteria
-        $result = $this->tagService->getListsForTag(
+        $listIds = $this->tagService->getListsForTag(
             $this->tags,
             $this->ids,
             true,
             $this->andTags
         );
+
+        $result = [];
+        if (count($listIds)) {
+            foreach ($listIds as $id) {
+                $this->tagService->testlogger($id);
+                $result[] = $this->listService->getEntityById(\VuFind\Db\Entity\UserList::class, $id);
+            }
+        }
 
         // Sort lists by ID list, if necessary:
         if (!empty($result) && $this->ids) {

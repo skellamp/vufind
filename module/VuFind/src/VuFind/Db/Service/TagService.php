@@ -246,7 +246,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
     ) {
         $tag = (array)$tag;
         $listId = $listId ? (array)$listId : null;
-        $dql = 'SELECT rt.list '
+        $dql = 'SELECT IDENTITY(rt.list) '
             . 'FROM ' . $this->getEntityClass(ResourceTags::class) . ' rt '
             . 'JOIN rt.tag t '
             . 'JOIN rt.list l '
@@ -285,7 +285,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
         $dql .= 'ORDER BY rt.list';
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
-        $result = $query->getResult();
+        $result = $query->getSingleColumnResult();
         return $result;
     }
 
@@ -1182,5 +1182,9 @@ class TagService extends AbstractService implements LoggerAwareInterface
         foreach ($this->getDuplicates() as $dupe) {
             $this->fixDuplicateTag($dupe['tag']);
         }
+    }
+
+    Public function testlogger($value){
+        $this->logError($value);
     }
 }
