@@ -124,7 +124,7 @@ class ListItems extends AbstractChannelProvider
      * (optional)
      */
     public function __construct(
-        \VuFind\Db\Service\TagService $listService,
+        \VuFind\Db\Service\UserListService $listService,
         \VuFind\Db\Service\TagService $tagService,
         Url $url,
         \VuFind\Search\Results\PluginManager $resultsManager,
