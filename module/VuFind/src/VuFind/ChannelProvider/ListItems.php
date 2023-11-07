@@ -282,7 +282,6 @@ class ListItems extends AbstractChannelProvider
         $result = [];
         if (count($listIds)) {
             foreach ($listIds as $id) {
-                $this->tagService->testlogger($id);
                 $result[] = $this->listService->getEntityById(\VuFind\Db\Entity\UserList::class, $id);
             }
         }

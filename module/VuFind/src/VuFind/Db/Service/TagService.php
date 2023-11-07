@@ -1183,8 +1183,4 @@ class TagService extends AbstractService implements LoggerAwareInterface
             $this->fixDuplicateTag($dupe['tag']);
         }
     }
-
-    Public function testlogger($value){
-        $this->logError($value);
-    }
 }
