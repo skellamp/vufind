@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Factory for Favorites controller plugin.
+ * Db Service helper factory.
  *
  * PHP version 8
  *
- * Copyright (C) Villanova University 2019.
+ * Copyright (C) Villanova University 2023.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -21,13 +21,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * @category VuFind
- * @package  Controller_Plugins
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @package  View_Helpers
+ * @author   Sudharma Kellampalli <skellamp@villanova.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org Main Page
+ * @link     https://vufind.org/wiki/development Wiki
  */
 
-namespace VuFind\Controller\Plugin;
+namespace VuFind\View\Helper\Root;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
@@ -36,15 +36,15 @@ use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
 /**
- * Factory for Favorites controller plugin.
+ * DbService helper factory.
  *
  * @category VuFind
- * @package  Controller_Plugins
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @package  View_Helpers
+ * @author   Sudharma Kellampalli <skellamp@villanova.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org/wiki/development:plugins:recommendation_modules Wiki
+ * @link     https://vufind.org/wiki/development Wiki
  */
-class FavoritesFactory implements FactoryInterface
+class DbServiceFactory implements FactoryInterface
 {
     /**
      * Create an object
@@ -68,11 +68,6 @@ class FavoritesFactory implements FactoryInterface
         if (!empty($options)) {
             throw new \Exception('Unexpected options sent to factory.');
         }
-        return new $requestedName(
-            $container->get(\VuFind\Record\Loader::class),
-            $container->get(\VuFind\Record\Cache::class),
-            $container->get(\VuFind\Tags::class),
-            $container->get(\VuFind\Favorites\FavoritesService::class),
-        );
+        return new $requestedName($container->get(\VuFind\Db\Service\PluginManager::class));
     }
 }

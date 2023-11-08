@@ -132,9 +132,9 @@ class UserList implements EntityInterface
      *
      * @return bool
      */
-    public function isPublic()
+    public function isPublic(): bool
     {
-        return isset($this->public) && ($this->public == true);
+        return (bool)($this->public ?? false);
     }
 
     /**
@@ -259,7 +259,7 @@ class UserList implements EntityInterface
      *
      * @return bool
      */
-    public function editAllowed($user)
+    public function editAllowed($user): bool
     {
         if ($user instanceof \VuFind\Db\Entity\User && $user->getId() == $this->getUser()->getId()) {
             return true;

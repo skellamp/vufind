@@ -94,7 +94,7 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
         if (empty($listId) || $listId == 'NEW') {
             $list = $listService->getNew($user->id);
             $list->setTitle($this->translate('My Favorites'));
-            $listService->save($list, $user);
+            $listService->save($list, $user->id);
         } else {
             $list = $listService->getExisting($listId);
             // Validate incoming list ID:

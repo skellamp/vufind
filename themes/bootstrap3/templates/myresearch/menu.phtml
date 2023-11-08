@@ -135,14 +135,16 @@
         $publicInd .= '<span class="sr-only">(' . $this->transEsc('public_list_indicator') . ')</span>';
       ?>
   
-      <?php $lists = $user->getLists() ?>
-      <?php foreach ($lists as $list): ?>
+      <?php $lists = $this->dbService()->getDbService(\VuFind\Db\Service\UserListService::class)->getLists($user->id)?>
+      <?php foreach ($lists as $current): ?>
+      <?php $list = $current[0]; ?>
+      <?php $cnt = $current['cnt']; ?>
       <li>
-        <a class="user-list-link icon-link <?=$this->active == 'list' . $list['id'] ? ' active' : ''?>" href="<?=$this->url('userList', ['id' => $list['id']])?>">
+        <a class="user-list-link icon-link <?=$this->active == 'list' . $list->getId() ? ' active' : ''?>" href="<?=$this->url('userList', ['id' => $list->getId()])?>">
           <?=$this->icon('user-list', 'icon-link__icon') ?>
-          <span class="icon-link__label"><?=$this->escapeHtml($list['title'])?></span>
-          <?=$list['public'] ? $publicInd : ''?>
-          <span class="badge"><?=$list->cnt ?></span>
+          <span class="icon-link__label"><?=$this->escapeHtml($list->getTitle())?></span>
+          <?=$list->getPublic() ? $publicInd : ''?>
+          <span class="badge"><?=$cnt ?></span>
         </a>
       </li>
       <?php endforeach; ?>
