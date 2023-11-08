@@ -103,9 +103,6 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
     public function getResourceTags($list)
     {
         $user = $list->getUser();
-        if (empty($user)) {
-            return [];
-        }
         $tags = $this->getDbService(\VuFind\Db\Service\TagService::class)
             ->getListTagsForUser($user, null, $list);
         return $tags;
