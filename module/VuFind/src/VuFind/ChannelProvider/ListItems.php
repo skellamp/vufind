@@ -232,22 +232,6 @@ class ListItems extends AbstractChannelProvider
     }
 
     /**
-     * Given an array of lists, add public lists if configured to do so.
-     *
-     * @param array $lists List to expand.
-     *
-     * @return array
-     */
-    protected function addPublicLists($lists)
-    {
-        $publicLists = [];
-        if ($this->displayPublicLists) {
-            $publicLists = $this->listService->getPublicLists();
-        }
-        return array_merge($lists, $publicLists);
-    }
-
-    /**
      * Get a list of public lists to display:
      *
      * @return array
@@ -261,7 +245,11 @@ class ListItems extends AbstractChannelProvider
             : $this->getListsById($this->ids);
 
         // Next, we add other public lists if necessary:
-        return $this->addPublicLists($baseLists);
+        $publicLists = [];
+        if ($this->displayPublicLists) {
+            $publicLists = $this->listService->getPublicLists($baseLists);
+        }
+        return array_merge($baseLists, $publicLists);
     }
 
     /**

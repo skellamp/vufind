@@ -200,7 +200,7 @@ class Favorites extends \Laminas\Mvc\Controller\Plugin\AbstractPlugin
             $listService = $this->favoritesService->getDbService(\VuFind\Db\Service\UserListService::class);
             $list = $listService->getExisting($listID);
             foreach ($sorted as $source => $ids) {
-                $listService->removeResourcesById($user, $list, $ids, $source);
+                $listService->removeResourcesById($user->id, $list, $ids, $source);
             }
         }
     }

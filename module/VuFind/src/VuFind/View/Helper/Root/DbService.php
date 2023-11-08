@@ -29,9 +29,8 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\Session\Container;
 use Laminas\View\Helper\AbstractHelper;
-use \VuFind\Db\Service\PluginManager as PluginManager;
+use VuFind\Db\Service\PluginManager as PluginManager;
 
 /**
  * Db service helper
