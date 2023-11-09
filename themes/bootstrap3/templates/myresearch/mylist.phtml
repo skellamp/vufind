@@ -80,8 +80,8 @@
       <?php endif; ?>
     </div>
   </nav>
-  <?php if ($list && !empty($list->getDescription())): ?>
-    <p><?=$this->escapeHtml($list->getDescription())?></p>
+  <?php if ($list && strlen($description = $list->getDescription() ?? '')): ?>
+    <p><?=$this->escapeHtml($description)?></p>
   <?php endif; ?>
   <?php if (!empty($listTags)): ?>
     <div><strong><?=$this->transEsc('Tags')?>:</strong> <span class="list-tags"><?=implode(', ', array_map([$this, 'escapeHtml'], $listTags))?></span></div>

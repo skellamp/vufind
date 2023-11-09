@@ -27,7 +27,7 @@
   </div>
   <div class="form-group">
     <label class="control-label" for="list_desc"><?=$this->transEsc('Description') ?></label>
-    <textarea id="list_desc" class="form-control" name="desc" rows="3"><?=$this->list->getDescription() !== null ? $this->escapeHtml($this->list->getDescription()) : ''?></textarea>
+    <textarea id="list_desc" class="form-control" name="desc" rows="3"><?=$this->escapeHtml($this->list->getDescription() ?? '')?></textarea>
   </div>
   <?php if ($this->usertags()->getListMode() === 'enabled'): ?>
     <div class="form-group">
