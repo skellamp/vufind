@@ -23,7 +23,7 @@
   <input type="hidden" name="id" value="<?=empty($this->list->getId()) ? 'NEW' : $this->escapeHtmlAttr($this->list->getId()) ?>">
   <div class="form-group">
     <label class="control-label" for="list_title"><?=$this->transEsc('List'); ?>:</label>
-    <input id="list_title" class="form-control" type="text" name="title" value="<?=$this->list->getTitle() !== null ? $this->escapeHtml($this->list->getTitle()) : ''?>">
+    <input id="list_title" class="form-control" type="text" name="title" value="<?=$this->escapeHtml($this->list->getTitle() ?? '')?>">
   </div>
   <div class="form-group">
     <label class="control-label" for="list_desc"><?=$this->transEsc('Description') ?></label>
