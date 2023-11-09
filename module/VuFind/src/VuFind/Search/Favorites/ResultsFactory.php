@@ -73,8 +73,8 @@ class ResultsFactory extends \VuFind\Search\Results\ResultsFactory
             $container,
             $requestedName,
             [
-             $tm->get('Resource'),
-             $sm->get(\VuFind\Db\Service\UserListService::class),
+                $tm->get('Resource'),
+                $sm->get(\VuFind\Db\Service\UserListService::class),
             ]
         );
         $init = new \LmcRbacMvc\Initializer\AuthorizationServiceInitializer();
