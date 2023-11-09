@@ -266,16 +266,16 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      *
      * @param string $resourceId ID of record being checked.
      * @param string $source     Source of record to look up
-     * @param int    $userId     Optional user ID (to limit results to a particular
+     * @param ?int   $userId     Optional user ID (to limit results to a particular
      * user).
      *
      * @return array
      */
     public function getListsContainingResource(
-        $resourceId,
-        $source = DEFAULT_SEARCH_BACKEND,
-        $userId = null
-    ) {
+        string $resourceId,
+        string $source = DEFAULT_SEARCH_BACKEND,
+        ?int $userId = null
+    ): array {
         $dql = 'SELECT DISTINCT(ul.id), ul FROM ' . $this->getEntityClass(UserList::class) . ' ul '
             . 'JOIN ' . $this->getEntityClass(UserResource::class) . ' ur WITH ur.list = ul.id '
             . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = ur.resource '
