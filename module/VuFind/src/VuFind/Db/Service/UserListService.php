@@ -347,10 +347,10 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      */
     public function removeResourcesById(
         $user,
-        $list,
-        $ids,
-        $source = DEFAULT_SEARCH_BACKEND
-    ) {
+        UserList $list,
+        array $ids,
+        string $source = DEFAULT_SEARCH_BACKEND
+    ): void {
         $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
         if (!$list->editAllowed($user)) {
             throw new ListPermissionException('list_access_denied');
