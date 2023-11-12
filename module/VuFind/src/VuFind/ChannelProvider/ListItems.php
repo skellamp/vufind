@@ -224,7 +224,7 @@ class ListItems extends AbstractChannelProvider
         $lists = [];
         foreach ($ids as $id) {
             $list = $this->listService->getExisting($id);
-            if ($list->getPublic()) {
+            if ($list->isPublic()) {
                 $lists[] = $list;
             }
         }

@@ -41,7 +41,7 @@
         <?php foreach ($this->lists as $current): ?>
           <?php $list = $current[0] ?>
           <option value="<?=$this->escapeHtmlAttr($list->getId()) ?>"<?php if ($list->getId() == $this->userlist()->lastUsed()): ?> selected="selected"<?php endif; ?>>
-            <?=$this->escapeHtml($list->getTitle())?><?php if ($list->getPublic()):?> (<?=$this->transEsc('public_list_indicator')?>)<?php endif; ?>
+            <?=$this->escapeHtml($list->getTitle())?><?php if ($list->isPublic()):?> (<?=$this->transEsc('public_list_indicator')?>)<?php endif; ?>
           </option>
         <?php endforeach; ?>
       <?php else: ?>

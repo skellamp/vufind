@@ -197,16 +197,6 @@ class UserList implements EntityInterface
     }
 
     /**
-     * Get the public flag
-     *
-     * @return bool
-     */
-    public function getPublic(): bool
-    {
-        return $this->public;
-    }
-
-    /**
      * User setter.
      *
      * @param ?User $user User object

@@ -189,7 +189,7 @@ class Results extends BaseResults implements AuthorizationServiceAwareInterface
             );
         }
         if (
-            null !== $list && !$list->getPublic()
+            null !== $list && !$list->isPublic()
             && (!$this->user || $list->getUser()->getId() != $this->user->id)
         ) {
             throw new ListPermissionException(
@@ -262,7 +262,7 @@ class Results extends BaseResults implements AuthorizationServiceAwareInterface
             $filters = $this->getParams()->getRawFilters();
             $listId = $filters['lists'][0] ?? null;
             $this->list = (null === $listId)
-                ? null : $this->listService->getEntityById(\VuFind\Db\Entity\UserList::class, $listId);
+                ? null : $this->listService->getExisting($listId);
         }
         return $this->list;
     }
