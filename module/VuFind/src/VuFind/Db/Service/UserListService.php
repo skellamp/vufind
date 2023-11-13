@@ -379,8 +379,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      *
      * @param UserList      $list  Userlist to destroy
      * @param User|int|bool $user  Logged-in user (false if none)
-     * @param bool          $force Should we force the delete without
-     *                             checking permissions?
+     * @param bool          $force Should we force the delete without checking permissions?
      *
      * @return int The number of rows deleted.
      */
