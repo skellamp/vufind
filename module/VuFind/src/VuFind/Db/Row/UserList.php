@@ -233,14 +233,4 @@ class UserList extends RowGateway implements
             $this->session->lastUsed = $this->id;
         }
     }
-
-    /**
-     * Is this a public list?
-     *
-     * @return bool
-     */
-    public function isPublic()
-    {
-        return isset($this->public) && ($this->public == 1);
-    }
 }
