@@ -308,45 +308,6 @@ class User extends RowGateway implements
     }
 
     /**
-     * Get all of the lists associated with this user.
-     *
-     * @return \Laminas\Db\ResultSet\AbstractResultSet
-     */
-    public function getLists()
-    {
-        $userId = $this->id;
-        $callback = function ($select) use ($userId) {
-            $select->columns(
-                [
-                    Select::SQL_STAR,
-                    'cnt' => new Expression(
-                        'COUNT(DISTINCT(?))',
-                        ['ur.resource_id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    ),
-                ]
-            );
-            $select->join(
-                ['ur' => 'user_resource'],
-                'user_list.id = ur.list_id',
-                [],
-                $select::JOIN_LEFT
-            );
-            $select->where->equalTo('user_list.user_id', $userId);
-            $select->group(
-                [
-                    'user_list.id', 'user_list.user_id', 'title', 'description',
-                    'created', 'public',
-                ]
-            );
-            $select->order(['title']);
-        };
-
-        $table = $this->getDbTable('UserList');
-        return $table->select($callback);
-    }
-
-    /**
      * Get information saved in a user's favorites for a particular record.
      *
      * @param string $resourceId ID of record being checked.
