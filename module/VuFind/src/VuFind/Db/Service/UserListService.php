@@ -204,7 +204,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      * @throws ListPermissionException
      * @throws MissingFieldException
      */
-    public function save($list, $user = false)
+    public function save(UserList $list, $user = false)
     {
         if (!$list->editAllowed($user)) {
             throw new ListPermissionException('list_access_denied');
