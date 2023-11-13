@@ -29,8 +29,6 @@
 
 namespace VuFind\Db\Row;
 
-use Laminas\Db\Sql\Expression;
-use Laminas\Db\Sql\Select;
 use VuFind\Db\Entity\UserCard;
 
 use function count;
