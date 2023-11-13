@@ -29,11 +29,6 @@
 
 namespace VuFind\Db\Row;
 
-use Laminas\Session\Container;
-use VuFind\Exception\ListPermission as ListPermissionException;
-use VuFind\Exception\MissingField as MissingFieldException;
-use VuFind\Tags;
-
 /**
  * Row Definition for user_list
  *
@@ -58,110 +53,12 @@ class UserList extends RowGateway implements
     use \VuFind\Db\Service\ServiceAwareTrait;
 
     /**
-     * Session container for last list information.
-     *
-     * @var Container
-     */
-    protected $session = null;
-
-    /**
-     * Tag parser.
-     *
-     * @var Tags
-     */
-    protected $tagParser;
-
-    /**
      * Constructor
      *
-     * @param \Laminas\Db\Adapter\Adapter $adapter   Database adapter
-     * @param Tags                        $tagParser Tag parser
-     * @param Container                   $session   Session container
+     * @param \Laminas\Db\Adapter\Adapter $adapter Database adapter
      */
-    public function __construct($adapter, Tags $tagParser, Container $session = null)
+    public function __construct($adapter)
     {
-        $this->tagParser = $tagParser;
-        $this->session = $session;
         parent::__construct('id', 'user_list', $adapter);
-    }
-
-    /**
-     * Is the current user allowed to edit this list?
-     *
-     * @param \VuFind\Db\Row\User|bool $user Logged-in user (false if none)
-     *
-     * @return bool
-     */
-    public function editAllowed($user)
-    {
-        if ($user && $user->id == $this->user_id) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Get an array of resource tags associated with this list.
-     *
-     * @return array
-     */
-    public function getResourceTags()
-    {
-        $table = $this->getDbTable('User');
-        $user = $table->select(['id' => $this->user_id])->current();
-        if (empty($user)) {
-            return [];
-        }
-        return $user->getTags(null, $this->id);
-    }
-
-    /**
-     * Get an array of tags assigned to this list.
-     *
-     * @return array
-     */
-    public function getListTags()
-    {
-        $table = $this->getDbTable('User');
-        $user = $table->select(['id' => $this->user_id])->current();
-        if (empty($user)) {
-            return [];
-        }
-        return $user->getListTags($this->id, $this->user_id);
-    }
-
-    /**
-     * Add a tag to the list.
-     *
-     * @param string              $tagText The tag to save.
-     * @param \VuFind\Db\Row\User $user    The user posting the tag.
-     *
-     * @return void
-     */
-    public function addListTag($tagText, $user)
-    {
-        $tagText = trim($tagText);
-        if (!empty($tagText)) {
-            $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
-            $tag = $tagService->getByText($tagText);
-            $tagService->createLink(
-                $tag,
-                null,
-                $user->id,
-                $this->id
-            );
-        }
-    }
-
-    /**
-     * Set session container
-     *
-     * @param Container $session Session container
-     *
-     * @return void
-     */
-    public function setSession(Container $session)
-    {
-        $this->session = $session;
     }
 }
