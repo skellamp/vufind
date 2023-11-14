@@ -201,7 +201,7 @@ class ListItems extends AbstractChannelProvider
     {
         $channels = [];
         $lists = $channelToken
-            ? $this->listService->getPublicLists([$channelToken]) : $this->getLists();
+            ? $this->listService->getPublicLists(false, [$channelToken]) : $this->getLists();
         foreach ($lists as $list) {
             $tokenOnly = (count($channels) >= $this->initialListsToDisplay);
             $channel = $this->getChannelFromList($list, $tokenOnly);
@@ -223,14 +223,13 @@ class ListItems extends AbstractChannelProvider
         // fetch the base list of lists...
         $baseLists = $this->tags
             ? $this->getListsByTagAndId()
-            : $this->listService->getPublicLists($this->ids);
+            : $this->listService->getPublicLists(false, $this->ids);
 
         // Next, we add other public lists if necessary:
-        $publicLists = [];
         if ($this->displayPublicLists) {
-            $publicLists = $this->listService->getPublicLists($baseLists);
+            $baseLists = $this->listService->getPublicLists();
         }
-        return array_merge($baseLists, $publicLists);
+        return $baseLists;
     }
 
     /**

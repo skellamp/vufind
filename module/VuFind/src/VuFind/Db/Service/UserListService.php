@@ -297,21 +297,23 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
     /**
      * Get public lists.
      *
-     * @param array $lists Ids or objects of public lists.
+     * @param bool  $getAll Get all the public lists.
+     * @param array $lists  Ids or objects of public lists.
      *
      * @return array
      */
-    public function getPublicLists($lists)
+    public function getPublicLists($getAll = true, $lists = [])
     {
         $dql = 'SELECT ul FROM ' . $this->getEntityClass(UserList::class) . ' ul ';
 
-        if (!empty($lists) && is_object($lists[0])) {
-            $dql .= 'WHERE ul.id IN (:lists) AND ul.public = 1';
+        $parameters = [];
+        if ($getAll) {
+            $dql .= 'WHERE ul.public = 1';
         } else {
-            $dql .= 'WHERE ul NOT IN (:lists) AND ul.public = 1';
+            $dql .= 'WHERE ul.id IN (:lists) AND ul.public = 1';
+            $parameters['lists'] = $lists;
         }
 
-        $parameters = compact('lists');
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         $results = $query->getResult();
