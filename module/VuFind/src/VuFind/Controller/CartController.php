@@ -491,7 +491,7 @@ class CartController extends AbstractBase
         return $this->createViewModel(
             [
                 'records' => $this->getRecordLoader()->loadBatch($ids),
-                'lists' => $listService->getLists($user->id),
+                'lists' => $listService->getListsForUser($user->id),
             ]
         );
     }

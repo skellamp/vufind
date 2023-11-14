@@ -325,7 +325,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      *
      * @return array
      */
-    public function getLists($user)
+    public function getListsForUser($user)
     {
         $dql = 'SELECT ul, COUNT(DISTINCT(ur.resource)) AS cnt '
             . 'FROM ' . $this->getEntityClass(UserList::class) . ' ul '

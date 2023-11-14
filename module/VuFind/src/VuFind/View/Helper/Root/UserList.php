@@ -108,8 +108,8 @@ class UserList extends AbstractHelper
      *
      * @return array
      */
-    public function getLists($user)
+    public function getListsForUser($user)
     {
-        return $this->listService->getLists($user);
+        return $this->listService->getListsForUser($user);
     }
 }

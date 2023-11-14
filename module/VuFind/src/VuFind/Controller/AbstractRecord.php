@@ -496,7 +496,7 @@ class AbstractRecord extends AbstractBase
 
         // Loop through all user lists and sort out containing/non-containing lists
         $containingLists = $nonContainingLists = [];
-        $lists = $this->getDbService(\VuFind\Db\Service\UserListService::class)->getLists($user->id);
+        $lists = $this->getDbService(\VuFind\Db\Service\UserListService::class)->getListsForUser($user->id);
         foreach ($lists as $current) {
             // Assign list to appropriate array based on whether or not we found
             // it earlier in the list of lists containing the selected record.
