@@ -295,16 +295,22 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
     }
 
     /**
-     * Get public lists other than the one in array.
+     * Get public lists.
      *
-     * @param array $lists List of public lists.
-     *
+     * @param array $lists Ids or objects of public lists.
+     * 
      * @return array
      */
     public function getPublicLists($lists)
     {
-        $dql = 'SELECT ul FROM ' . $this->getEntityClass(UserList::class) . ' ul '
-            . 'WHERE ul NOT IN (:lists) AND ul.public = 1 ';
+        $dql = 'SELECT ul FROM ' . $this->getEntityClass(UserList::class) . ' ul ';
+
+        if (!empty($lists) && is_object($lists[0])) {
+            $dql .= 'WHERE ul.id IN (:lists) AND ul.public = 1';
+        } else {
+            $dql .= 'WHERE ul NOT IN (:lists) AND ul.public = 1';
+        }
+
         $parameters = compact('lists');
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
@@ -410,5 +416,23 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
             return 0;
         }
         return 1;
+    }
+
+    /**
+     * Retrieve a batch of list objects corresponding to the provided IDs
+     *
+     * @param array $ids List ids.
+     *
+     * @return array
+     */
+    public function getListsById($ids)
+    {
+        $dql = 'SELECT ul FROM ' . $this->getEntityClass(UserList::class) . ' ul '
+            . 'WHERE ul.id IN (:ids)';
+        $parameters = compact('ids');
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $results = $query->getResult();
+        return $results;
     }
 }

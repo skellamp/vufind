@@ -201,7 +201,7 @@ class ListItems extends AbstractChannelProvider
     {
         $channels = [];
         $lists = $channelToken
-            ? $this->getListsById([$channelToken]) : $this->getLists();
+            ? $this->listService->getPublicLists([$channelToken]) : $this->getLists();
         foreach ($lists as $list) {
             $tokenOnly = (count($channels) >= $this->initialListsToDisplay);
             $channel = $this->getChannelFromList($list, $tokenOnly);
@@ -210,25 +210,6 @@ class ListItems extends AbstractChannelProvider
             }
         }
         return $channels;
-    }
-
-    /**
-     * Get a list of lists, identified by ID; filter to public lists only.
-     *
-     * @param array $ids IDs to retrieve
-     *
-     * @return array
-     */
-    protected function getListsById($ids)
-    {
-        $lists = [];
-        foreach ($ids as $id) {
-            $list = $this->listService->getExisting($id);
-            if ($list->isPublic()) {
-                $lists[] = $list;
-            }
-        }
-        return $lists;
     }
 
     /**
@@ -242,7 +223,7 @@ class ListItems extends AbstractChannelProvider
         // fetch the base list of lists...
         $baseLists = $this->tags
             ? $this->getListsByTagAndId()
-            : $this->getListsById($this->ids);
+            : $this->listService->getPublicLists($this->ids);
 
         // Next, we add other public lists if necessary:
         $publicLists = [];
@@ -267,12 +248,7 @@ class ListItems extends AbstractChannelProvider
             $this->andTags
         );
 
-        $result = [];
-        if (count($listIds)) {
-            foreach ($listIds as $id) {
-                $result[] = $this->listService->getEntityById(\VuFind\Db\Entity\UserList::class, $id);
-            }
-        }
+        $result = $this->listService->getListsById($listIds);
 
         // Sort lists by ID list, if necessary:
         if (!empty($result) && $this->ids) {
