@@ -96,21 +96,4 @@ class UserList extends Gateway
         $row->user_id = $user->id;
         return $row;
     }
-
-    /**
-     * Retrieve a list object.
-     *
-     * @param int $id Numeric ID for existing list.
-     *
-     * @return \VuFind\Db\Row\UserList
-     * @throws RecordMissingException
-     */
-    public function getExisting($id)
-    {
-        $result = $this->select(['id' => $id])->current();
-        if (empty($result)) {
-            throw new RecordMissingException('Cannot load list ' . $id);
-        }
-        return $result;
-    }
 }
