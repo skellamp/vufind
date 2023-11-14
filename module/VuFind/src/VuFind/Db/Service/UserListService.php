@@ -298,7 +298,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      * Get public lists.
      *
      * @param array $lists Ids or objects of public lists.
-     * 
+     *
      * @return array
      */
     public function getPublicLists($lists)
