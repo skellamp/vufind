@@ -36,7 +36,6 @@ use VuFind\Db\Entity\UserList;
 use VuFind\Db\Entity\UserResource;
 use VuFind\Log\LoggerAwareTrait;
 
-use function is_array;
 use function is_object;
 
 /**
@@ -144,17 +143,15 @@ class UserResourceService extends AbstractService implements LoggerAwareInterfac
      * any tags associated with the relationship.
      *
      * @param User|int          $user        ID of user removing links
-     * @param string|array|null $resource_id ID (or array of IDs) of resource(s) to
-     *                                       unlink (null for ALL matching
-     *                                       resources)
+     * @param string|array|null $resource_id ID (or array of IDs) of resource(s) to unlink
+     * (null for ALL matching resources)
      * @param UserList|null     $list        list to unlink (null for ALL matching lists, with the destruction
-     *                                       of all tags associated with the $resource_id value; true for ALL
-     *                                       matching lists, but retaining any tags associated with the
-     *                                       $resource_id independently of lists)
+     * of all tags associated with the $resource_id value; true for ALL matching lists,
+     * but retaining any tags associated with the resource_id independently of lists)
      *
      * @return void
      */
-    public function destroyLinks($user, $resource_id, $list = null)
+    public function destroyLinks($user, $resource_id = null, $list = null)
     {
         // Remove any tags associated with the links we are removing; we don't
         // want to leave orphaned tags in the resource_tags table after we have
@@ -166,11 +163,8 @@ class UserResourceService extends AbstractService implements LoggerAwareInterfac
         $dqlWhere = ['ur.user = :user '];
         $parameters = compact('user');
         if (null !== $resource_id) {
-            if (!is_array($resource_id)) {
-                $resource_id = [$resource_id];
-            }
             $dqlWhere[] = ' ur.resource IN (:resource_id) ';
-            $parameters['resource_id'] = $resource_id;
+            $parameters['resource_id'] = (array)$resource_id;
         }
 
         // null or true values of $list have different meanings in the

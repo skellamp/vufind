@@ -294,7 +294,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
      *
      * @param mixed             $resource ID (or array of IDs) of resource(s) to
      * unlink (null for ALL matching resources)
-     * @param string|User|int   $user     ID of user removing links
+     * @param string|User|int   $user     ID or entity representing user
      * @param mixed             $list     ID of list to unlink (null for ALL matching
      * tags, 'none' for tags not in a list, true for tags only found in a list)
      * @param string|array|null $tag      ID or array of IDs of tag(s) to unlink (null
@@ -1022,7 +1022,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
      *
      * @return array
      */
-    public function getListTagsForUser(
+    public function getUserTagsFromFavorites(
         $userId,
         $resourceId = null,
         $listId = null,
@@ -1059,7 +1059,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
     /**
      * Get tags assigned to a user list.
      *
-     * @param UserList|int $listId List ID
+     * @param UserList|int $listId List ID or entity
      * @param ?User|int    $user   User to look up (null for no filter).
      *
      * @return array

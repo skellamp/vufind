@@ -249,7 +249,7 @@ class User extends RowGateway implements
     public function getTags($resourceId = null, $listId = null, $source = null)
     {
         return $this->getDbService(\VuFind\Db\Service\TagService::class)
-            ->getListTagsForUser($this->id, $resourceId, $listId, $source);
+            ->getUserTagsFromFavorites($this->id, $resourceId, $listId, $source);
     }
 
     /**

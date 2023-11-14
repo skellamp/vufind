@@ -104,7 +104,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
     {
         $user = $list->getUser();
         $tags = $this->getDbService(\VuFind\Db\Service\TagService::class)
-            ->getListTagsForUser($user, null, $list);
+            ->getUserTagsFromFavorites($user, null, $list);
         return $tags;
     }
 
@@ -176,8 +176,6 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
             ->setPublic((bool)$request->get('public'));
 
         $this->save($list, $user);
-
-        $this->rememberLastUsed($list);
 
         if (null !== ($tags = $request->get('tags'))) {
             $linker = $this->getDbService(\VuFind\Db\Service\TagService::class);
@@ -323,7 +321,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
     /**
      * Get all of the lists associated with this user.
      *
-     * @param User|int $user Id of the user owning the list.
+     * @param User|int $user User object or ID representing the user owning the list.
      *
      * @return array
      */
