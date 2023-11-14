@@ -33,7 +33,6 @@ use Laminas\Db\Adapter\Adapter;
 use Laminas\Session\Container;
 use VuFind\Db\Row\RowGateway;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
-use VuFind\Exception\RecordMissing as RecordMissingException;
 
 /**
  * Table Definition for user_list
@@ -95,22 +94,5 @@ class UserList extends Gateway
         $row->created = date('Y-m-d H:i:s');    // force creation date
         $row->user_id = $user->id;
         return $row;
-    }
-
-    /**
-     * Retrieve a list object.
-     *
-     * @param int $id Numeric ID for existing list.
-     *
-     * @return \VuFind\Db\Row\UserList
-     * @throws RecordMissingException
-     */
-    public function getExisting($id)
-    {
-        $result = $this->select(['id' => $id])->current();
-        if (empty($result)) {
-            throw new RecordMissingException('Cannot load list ' . $id);
-        }
-        return $result;
     }
 }
