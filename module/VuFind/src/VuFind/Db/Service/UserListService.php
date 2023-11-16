@@ -295,22 +295,26 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
     /**
      * Get public lists.
      *
-     * @param bool  $getAll Get all the public lists.
-     * @param array $lists  Ids or objects of public lists.
+     * @param array $includeFilter List of list ids to include in result.
+     * @param array $excludeFilter List of list entities to exclude from result.
      *
      * @return array
      */
-    public function getPublicLists($getAll = true, $lists = [])
+    public function getPublicLists($includeFilter = [], $excludeFilter = [])
     {
         $dql = 'SELECT ul FROM ' . $this->getEntityClass(UserList::class) . ' ul ';
 
         $parameters = [];
-        if ($getAll) {
-            $dql .= 'WHERE ul.public = 1';
-        } else {
-            $dql .= 'WHERE ul.id IN (:lists) AND ul.public = 1';
-            $parameters['lists'] = $lists;
+        $where = ['ul.public = 1'];
+        if (!empty($includeFilter)) {
+            $where[] = 'ul.id IN (:includeFilter)';
+            $parameters['includeFilter'] = $includeFilter;
         }
+        if (!empty($excludeFilter)) {
+            $where[] = 'ul NOT IN (:excludeFilter)';
+            $parameters['excludeFilter'] = $excludeFilter;
+        }
+        $dql .= 'WHERE ' . implode(' AND ', $where);
 
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
