@@ -124,6 +124,7 @@ class UserListServiceTest extends \PHPUnit\Framework\TestCase
 
         $listService = $this->getMockBuilder(\VuFind\Db\Service\UserListService::class)
             ->setConstructorArgs([$entityManager, $pluginManager, $tags, $session])
+            ->onlyMethods(['createUserList'])
             ->getMock();
         $listService->expects($this->atMost(3))->method('createUserList')
             ->willReturn(...$this->getTestLists());
