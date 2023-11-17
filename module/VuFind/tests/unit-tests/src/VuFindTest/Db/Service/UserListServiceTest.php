@@ -44,22 +44,6 @@ use VuFind\Db\Entity\UserList;
 class UserListServiceTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * Get test list objects
-     *
-     * @return array
-     */
-    protected function getTestLists()
-    {
-        $list1 = new UserList();
-        $list1->setTitle('Title1');
-        $list2 = new UserList();
-        $list2->setTitle('Title2');
-        $list3 = new UserList();
-        $list3->setTitle('Title3');
-        return [$list1, $list2, $list3];
-    }
-
-    /**
      * Test that a new list contains the appropriate user ID.
      *
      * @return void
@@ -108,26 +92,24 @@ class UserListServiceTest extends \PHPUnit\Framework\TestCase
      */
     public function getMockListService()
     {
-        $entityManager = $this->getMockBuilder(\Doctrine\ORM\EntityManager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $pluginManager = $this->getMockBuilder(\VuFind\Db\Entity\PluginManager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $tags = $this->getMockBuilder(\VuFind\Tags::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $session = $this->getMockBuilder(\Laminas\Session\Container::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
+        $mockContainer = new \VuFindTest\Container\MockContainer($this);
+        $entityManager = $mockContainer->get(\Doctrine\ORM\EntityManager::class);
+        $pluginManager = $mockContainer->get(\VuFind\Db\Entity\PluginManager::class);
+        $tags = $mockContainer->get(\VuFind\Tags::class);
+        $session = $mockContainer->get(\Laminas\Session\Container::class);
         $listService = $this->getMockBuilder(\VuFind\Db\Service\UserListService::class)
             ->setConstructorArgs([$entityManager, $pluginManager, $tags, $session])
             ->onlyMethods(['createUserList'])
             ->getMock();
+        $callback = function () {
+            static $i = 0;
+            $i++;
+            $list = new UserList();
+            $list->setTitle("Title$i");
+            return $list;
+        };
         $listService->expects($this->atMost(3))->method('createUserList')
-            ->willReturn(...$this->getTestLists());
+            ->willReturnCallback($callback);
         return $listService;
     }
 }
