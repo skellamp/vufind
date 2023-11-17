@@ -200,11 +200,7 @@ class UserResourceService extends AbstractService implements LoggerAwareInterfac
     ) {
         $resource = is_object($resource) ? $resource : $this->entityManager->getReference(Resource::class, $resource);
         $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
-        $params = [
-            'resource' => $resource,
-            'list' => $list,
-            'user' => $user,
-        ];
+        $params = compact('resource', 'list', 'user');
         $result = current($this->entityManager->getRepository($this->getEntityClass(UserResource::class))
             ->findBy($params));
 
