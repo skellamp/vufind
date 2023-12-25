@@ -109,20 +109,20 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
     /**
      * Persist a resource to the record cache (if applicable).
      *
-     * @param RecordDriver            $driver   Record driver to persist
-     * @param \VuFind\Db\Row\Resource $resource Resource row
+     * @param RecordDriver               $driver   Record driver to persist
+     * @param \VuFind\Db\Entity\Resource $resource Resource object
      *
      * @return void
      */
     protected function persistToCache(
         RecordDriver $driver,
-        \VuFind\Db\Row\Resource $resource
+        \VuFind\Db\Entity\Resource $resource
     ) {
         if ($this->recordCache) {
             $this->recordCache->setContext(RecordCache::CONTEXT_FAVORITE);
             $this->recordCache->createOrUpdate(
-                $resource->record_id,
-                $resource->source,
+                $resource->getRecordId(),
+                $resource->getSource(),
                 $driver->getRawData()
             );
         }
@@ -159,7 +159,7 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
         );
 
         // Get or create a resource object as needed:
-        $resource = $this->resourceTable->findResource(
+        $resource = $this->getDbService(\VuFind\Db\Service\ResourceService::class)->findResource(
             $driver->getUniqueId(),
             $driver->getSourceIdentifier(),
             true,
@@ -172,7 +172,7 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
         // Add the information to the user's account:
         $userService = $this->getDbService(\VuFind\Db\Service\UserService::class);
         $userService->saveResource(
-            $resource->id,
+            $resource,
             $user->id,
             $list,
             $params['mytags'] ?? [],

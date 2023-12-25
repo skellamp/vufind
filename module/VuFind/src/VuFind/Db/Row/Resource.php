@@ -30,10 +30,8 @@
 namespace VuFind\Db\Row;
 
 use VuFind\Date\DateException;
-use VuFind\Exception\LoginRequired as LoginRequiredException;
 
 use function intval;
-use function is_object;
 use function strlen;
 
 /**
@@ -68,121 +66,6 @@ class Resource extends RowGateway implements
     public function __construct($adapter)
     {
         parent::__construct('id', 'resource', $adapter);
-    }
-
-    /**
-     * Remove tags from the current resource.
-     *
-     * @param \VuFind\Db\Row\User $user    The user deleting the tags.
-     * @param string              $list_id The list associated with the tags
-     * (optional -- omitting this will delete ALL of the user's tags).
-     *
-     * @return void
-     */
-    public function deleteTags($user, $list_id = null)
-    {
-        $unlinker = $this->getDbService(\VuFind\Db\Service\TagService::class);
-        $unlinker->destroyResourceLinks($this->id, $user->id, $list_id);
-    }
-
-    /**
-     * Add a tag to the current resource.
-     *
-     * @param string              $tagText The tag to save.
-     * @param \VuFind\Db\Row\User $user    The user posting the tag.
-     * @param string              $list_id The list associated with the tag
-     * (optional).
-     *
-     * @return void
-     */
-    public function addTag($tagText, $user, $list_id = null)
-    {
-        $tagText = trim($tagText);
-        if (!empty($tagText)) {
-            $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
-            $tag = $tagService->getByText($tagText);
-
-            $tagService->createLink(
-                $tag,
-                $this->id,
-                is_object($user) ? $user->id : null,
-                $list_id
-            );
-        }
-    }
-
-    /**
-     * Remove a tag from the current resource.
-     *
-     * @param string              $tagText The tag to delete.
-     * @param \VuFind\Db\Row\User $user    The user deleting the tag.
-     * @param string              $list_id The list associated with the tag
-     * (optional).
-     *
-     * @return void
-     */
-    public function deleteTag($tagText, $user, $list_id = null)
-    {
-        $tagText = trim($tagText);
-        $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
-        if (!empty($tagText)) {
-            $tagIds = [];
-            foreach ($tagService->getByText($tagText, false, false) as $tag) {
-                $tagIds[] = $tag->getId();
-            }
-            if (!empty($tagIds)) {
-                $tagService->destroyResourceLinks(
-                    $this->id,
-                    $user->id,
-                    $list_id,
-                    $tagIds
-                );
-            }
-        }
-    }
-
-    /**
-     * Add or update user's rating for the current resource.
-     *
-     * @param int  $userId User ID
-     * @param ?int $rating Rating (null to delete)
-     *
-     * @throws LoginRequiredException
-     * @throws \Exception
-     * @return int ID of rating added, deleted or updated
-     */
-    public function addOrUpdateRating(int $userId, ?int $rating): int
-    {
-        if (null !== $rating && ($rating < 0 || $rating > 100)) {
-            throw new \Exception('Rating value out of range');
-        }
-
-        $ratings = $this->getDbTable('Ratings');
-        $callback = function ($select) use ($userId) {
-            $select->where->equalTo('ratings.resource_id', $this->id);
-            $select->where->equalTo('ratings.user_id', $userId);
-        };
-        if ($existing = $ratings->select($callback)->current()) {
-            if (null === $rating) {
-                $existing->delete();
-            } else {
-                $existing->rating = $rating;
-                $existing->save();
-            }
-            return $existing->id;
-        }
-
-        if (null === $rating) {
-            return 0;
-        }
-
-        $row = $ratings->createRow();
-        $row->user_id = $userId;
-        $row->resource_id = $this->id;
-        $row->rating = $rating;
-        $row->created = date('Y-m-d H:i:s');
-        $row->save();
-        return $row->id;
     }
 
     /**
