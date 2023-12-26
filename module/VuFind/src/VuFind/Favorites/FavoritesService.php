@@ -59,7 +59,7 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
     /**
      * Constructor
      *
-     * @param RecordCache   $cache    Record cache
+     * @param RecordCache $cache Record cache
      */
     public function __construct(
         RecordCache $cache = null

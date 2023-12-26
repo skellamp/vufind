@@ -482,4 +482,23 @@ class ResourceService extends AbstractService implements \VuFind\Db\Service\Serv
         $result = $query->getResult();
         return $result;
     }
+
+    /**
+     * Delete a resource by source and id
+     *
+     * @param string $id     Resource ID
+     * @param string $source Resource source
+     *
+     * @return mixed
+     */
+    public function deleteResource($id, $source)
+    {
+        $dql = 'DELETE FROM ' . $this->getEntityClass(Resource::class) . ' r '
+            . 'WHERE r.recordId = :id AND r.source = :source';
+        $parameters = compact('id', 'source');
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $result = $query->execute();
+        return $result;
+    }
 }
