@@ -160,7 +160,7 @@ class Favorites extends \Laminas\Mvc\Controller\Plugin\AbstractPlugin
             $userService->saveResource($resource, $user->id, $list, $tags, '', false);
 
             // Collect record IDs for caching
-            if ($this->cache->isCachable($resource->source)) {
+            if ($this->cache->isCachable($resource->getSource())) {
                 $cacheRecordIds[] = $current;
             }
         }

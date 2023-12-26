@@ -31,7 +31,6 @@ namespace VuFind\Favorites;
 
 use VuFind\Db\Service\ServiceAwareInterface;
 use VuFind\Db\Service\ServiceAwareTrait;
-use VuFind\Db\Table\Resource as ResourceTable;
 use VuFind\Exception\LoginRequired as LoginRequiredException;
 use VuFind\Record\Cache as RecordCache;
 use VuFind\RecordDriver\AbstractBase as RecordDriver;
@@ -58,24 +57,14 @@ class FavoritesService implements \VuFind\I18n\Translator\TranslatorAwareInterfa
     protected $recordCache = null;
 
     /**
-     * Resource database table
-     *
-     * @var ResourceTable
-     */
-    protected $resourceTable;
-
-    /**
      * Constructor
      *
-     * @param ResourceTable $resource Resource table object
      * @param RecordCache   $cache    Record cache
      */
     public function __construct(
-        ResourceTable $resource,
         RecordCache $cache = null
     ) {
         $this->recordCache = $cache;
-        $this->resourceTable = $resource;
     }
 
     /**

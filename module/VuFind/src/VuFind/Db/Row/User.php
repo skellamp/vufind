@@ -335,18 +335,13 @@ class User extends RowGateway implements
     public function removeResourcesById($ids, $source = DEFAULT_SEARCH_BACKEND)
     {
         // Retrieve a list of resource IDs:
-        $resourceTable = $this->getDbTable('Resource');
-        $resources = $resourceTable->findResources($ids, $source);
-
-        $resourceIDs = [];
-        foreach ($resources as $current) {
-            $resourceIDs[] = $current->id;
-        }
+        $resourceService = $this->getDbService(\VuFind\Db\Service\ResourceService::class);
+        $resources = $resourceService->findResources($ids, $source);
 
         // Remove Resource (related tags are also removed implicitly)
-        $userResourceTable = $this->getDbTable('UserResource');
+        $userResourceService = $this->getDbService(\VuFind\Db\Service\UserResourceService::class);
         // true here makes sure that only tags in lists are deleted
-        $userResourceTable->destroyLinks($resourceIDs, $this->id, true);
+        $userResourceService->destroyLinks($this->id, $resources, true);
     }
 
     /**

@@ -122,7 +122,6 @@ abstract class AbstractFallbackLoader implements FallbackLoaderInterface
         $record->setPreviousUniqueId($previousId);
 
         // Update the database to replace the obsolete identifier...
-        $this->table
-            ->updateRecordId($previousId, $record->getUniqueId(), $this->source);
+        $this->resourceService->updateRecordId($previousId, $record->getUniqueId(), $this->source);
     }
 }
