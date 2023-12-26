@@ -131,7 +131,7 @@ class Ratings implements EntityInterface
     /**
      * User setter
      *
-     * @param User $user
+     * @param User $user User
      *
      * @return Ratings
      */
@@ -144,7 +144,7 @@ class Ratings implements EntityInterface
     /**
      * Rating setter
      *
-     * @param int $rating
+     * @param int $rating Rating
      *
      * @return Ratings
      */
@@ -167,7 +167,7 @@ class Ratings implements EntityInterface
     /**
      * Resource setter
      *
-     * @param Resource $resource
+     * @param Resource $resource Resource
      *
      * @return Ratings
      */
