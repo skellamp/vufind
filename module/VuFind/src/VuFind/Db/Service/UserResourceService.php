@@ -231,4 +231,40 @@ class UserResourceService extends AbstractService implements LoggerAwareInterfac
         $class = $this->getEntityClass(UserResource::class);
         return new $class();
     }
+
+    /**
+     * Get information saved in a user's favorites for a particular record.
+     *
+     * @param string       $resourceId ID of record being checked.
+     * @param string       $source     Source of record to look up
+     * @param int|UserList $list       Optional list (to limit results to a particular list).
+     * @param int|User     $user       Optional user (to limit results to a particular user).
+     *
+     * @return array
+     */
+    public function getSavedData(
+        $resourceId,
+        $source = DEFAULT_SEARCH_BACKEND,
+        $list = null,
+        $user = null
+    ) {
+        $dql = 'SELECT DISTINCT(ur.id), ur FROM ' . $this->getEntityClass(UserResource::class) . ' ur '
+            . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = ur.resource '
+            . 'WHERE r.source = :source AND r.recordId = :resourceId ';
+
+        $parameters = compact('source', 'resourceId');
+        if (null !== $user) {
+            $dql .= 'AND ur.user = :user ';
+            $parameters['user'] = $user;
+        }
+        if (null !== $list) {
+            $dql .= 'AND ur.list = :list';
+            $parameters['list'] = $list;
+        }
+
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+        $result = $query->getResult();
+        return $result;
+    }
 }

@@ -937,14 +937,16 @@ class MyResearchController extends AbstractBase
         }
 
         // Get saved favorites for selected list (or all lists if $listID is null)
-        $userResources = $user->getSavedData($id, $listID, $source);
+        $userResourceService = $this->getDbService(\VuFind\Db\Service\UserResourceService::class);
+        $userResources = $userResourceService->getSavedData($id, $listID, $source, $user->id);
         $savedData = [];
-        foreach ($userResources as $current) {
+        foreach ($userResources as $userResource) {
+            $current = $userResource[0];
             $savedData[] = [
-                'listId' => $current->list_id,
-                'listTitle' => $current->list_title,
-                'notes' => $current->notes,
-                'tags' => $user->getTagString($id, $current->list_id, $source),
+                'listId' => $current->getList()->getId(),
+                'listTitle' => $current->getList()->getTitle(),
+                'notes' => $current->getNotes(),
+                'tags' => $user->getTagString($id, $current->getList()->getId(), $source),
             ];
         }
 
@@ -953,10 +955,10 @@ class MyResearchController extends AbstractBase
         // to a particular list ID:
         $containingLists = [];
         if (!empty($listID)) {
-            $userResources = $user->getSavedData($id, null, $source);
+            $userResources = $userResourceService->getSavedData($id, null, $source, $user->id);
         }
         foreach ($userResources as $current) {
-            $containingLists[] = $current->list_id;
+            $containingLists[] = $current[0]->getList()->getId();
         }
         // Send non-containing lists to the view for user selection:
         $userLists = $this->getListService()->getListsForUser($user->id);

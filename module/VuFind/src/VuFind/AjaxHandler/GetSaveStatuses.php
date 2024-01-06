@@ -32,6 +32,7 @@ namespace VuFind\AjaxHandler;
 use Laminas\Mvc\Controller\Plugin\Params;
 use Laminas\Mvc\Controller\Plugin\Url;
 use VuFind\Db\Row\User;
+use VuFind\Db\Service\UserResourceService;
 use VuFind\I18n\Translator\TranslatorAwareInterface;
 use VuFind\Session\Settings as SessionSettings;
 
@@ -61,6 +62,13 @@ class GetSaveStatuses extends AbstractBase implements TranslatorAwareInterface
     protected $user;
 
     /**
+     * UserResource databse service
+     *
+     * @var UserResourceService
+     */
+    protected $userResourceService;
+
+    /**
      * URL helper
      *
      * @var Url
@@ -70,14 +78,16 @@ class GetSaveStatuses extends AbstractBase implements TranslatorAwareInterface
     /**
      * Constructor
      *
-     * @param SessionSettings $ss        Session settings
-     * @param User|bool       $user      Logged in user (or false)
-     * @param Url             $urlHelper URL helper
+     * @param SessionSettings     $ss                  Session settings
+     * @param User|bool           $user                Logged in user (or false)
+     * @param UserResourceService $userResourceService UserResource database service
+     * @param Url                 $urlHelper           URL helper
      */
-    public function __construct(SessionSettings $ss, $user, Url $urlHelper)
+    public function __construct(SessionSettings $ss, $user, UserResourceService $userResourceService, Url $urlHelper)
     {
         $this->sessionSettings = $ss;
         $this->user = $user;
+        $this->userResourceService = $userResourceService;
         $this->urlHelper = $urlHelper;
     }
 
@@ -92,8 +102,8 @@ class GetSaveStatuses extends AbstractBase implements TranslatorAwareInterface
     {
         return [
             'list_url' =>
-                $this->urlHelper->fromRoute('userList', ['id' => $list['list_id']]),
-            'list_title' => $list['list_title'],
+                $this->urlHelper->fromRoute('userList', ['id' => $list[0]->getList()->getId()]),
+            'list_title' => $list[0]->getList()->getTitle(),
         ];
     }
 
@@ -116,10 +126,9 @@ class GetSaveStatuses extends AbstractBase implements TranslatorAwareInterface
             // use the $checked flag array to avoid duplicates:
             if (!isset($checked[$selector])) {
                 $checked[$selector] = true;
-
-                $data = $this->user->getSavedData($id, null, $source);
+                $data = $this->userResourceService->getSavedData($id, null, $source, $this->user->id);
                 $result[$selector] = ($data && count($data) > 0)
-                    ? array_map([$this, 'formatListData'], $data->toArray()) : [];
+                    ? array_map([$this, 'formatListData'], $data) : [];
             }
         }
         return $result;

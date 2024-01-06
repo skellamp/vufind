@@ -330,8 +330,7 @@ abstract class AbstractBase implements
      */
     public function getListNotes($list_id = null, $user_id = null)
     {
-        $db = $this->getDbTable('UserResource');
-        $data = $db->getSavedData(
+        $data = $this->getDbService(\VuFind\Db\Service\UserResourceService::class)->getSavedData(
             $this->getUniqueId(),
             $this->getSourceIdentifier(),
             $list_id,

@@ -485,13 +485,15 @@ class AbstractRecord extends AbstractBase
 
         // Find out if the item is already part of any lists; save list info/IDs
         $listIds = [];
-        $resources = $user->getSavedData(
+
+        $resources = $this->getDbService(\VuFind\Db\Service\UserResourceService::class)->getSavedData(
             $driver->getUniqueId(),
             null,
-            $driver->getSourceIdentifier()
+            $driver->getSourceIdentifier(),
+            $user->id
         );
         foreach ($resources as $userResource) {
-            $listIds[] = $userResource->list_id;
+            $listIds[] = $userResource[0]->getList()->getId();
         }
 
         // Loop through all user lists and sort out containing/non-containing lists

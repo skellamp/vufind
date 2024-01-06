@@ -306,25 +306,6 @@ class User extends RowGateway implements
     }
 
     /**
-     * Get information saved in a user's favorites for a particular record.
-     *
-     * @param string $resourceId ID of record being checked.
-     * @param int    $listId     Optional list ID (to limit results to a particular
-     * list).
-     * @param string $source     Source of record to look up
-     *
-     * @return array
-     */
-    public function getSavedData(
-        $resourceId,
-        $listId = null,
-        $source = DEFAULT_SEARCH_BACKEND
-    ) {
-        $table = $this->getDbTable('UserResource');
-        return $table->getSavedData($resourceId, $source, $listId, $this->id);
-    }
-
-    /**
      * Given an array of item ids, remove them from all lists
      *
      * @param array  $ids    IDs to remove from the list
