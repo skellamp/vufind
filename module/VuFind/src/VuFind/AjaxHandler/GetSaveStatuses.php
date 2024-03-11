@@ -55,40 +55,20 @@ class GetSaveStatuses extends AbstractBase implements TranslatorAwareInterface
     use \VuFind\I18n\Translator\TranslatorAwareTrait;
 
     /**
-     * Logged in user (or false)
-     *
-     * @var User|bool
-     */
-    protected $user;
-
-    /**
-     * UserResource databse service
-     *
-     * @var UserResourceService
-     */
-    protected $userResourceService;
-
-    /**
-     * URL helper
-     *
-     * @var Url
-     */
-    protected $urlHelper;
-
-    /**
      * Constructor
      *
      * @param SessionSettings     $ss                  Session settings
-     * @param User|bool           $user                Logged in user (or false)
+     * @param ?User               $user                Logged in user (or null)
      * @param UserResourceService $userResourceService UserResource database service
      * @param Url                 $urlHelper           URL helper
      */
-    public function __construct(SessionSettings $ss, $user, UserResourceService $userResourceService, Url $urlHelper)
-    {
+    public function __construct(
+        SessionSettings $ss,
+        protected ?User $user,
+        protected UserResourceService $userResourceService,
+        protected Url $urlHelper
+    ) {
         $this->sessionSettings = $ss;
-        $this->user = $user;
-        $this->userResourceService = $userResourceService;
-        $this->urlHelper = $urlHelper;
     }
 
     /**

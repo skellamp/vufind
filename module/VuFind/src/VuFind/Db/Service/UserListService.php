@@ -55,10 +55,10 @@ use function is_object;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-class UserListService extends AbstractService implements LoggerAwareInterface, ServiceAwareInterface
+class UserListService extends AbstractDbService implements LoggerAwareInterface, DbServiceAwareInterface
 {
     use LoggerAwareTrait;
-    use ServiceAwareTrait;
+    use DbServiceAwareTrait;
 
     /**
      * Tag parser.
@@ -103,7 +103,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
     public function getResourceTags($list)
     {
         $user = $list->getUser();
-        $tags = $this->getDbService(\VuFind\Db\Service\TagService::class)
+        $tags = $this->getDbService(TagService::class)
             ->getUserTagsFromFavorites($user, null, $list);
         return $tags;
     }
@@ -178,7 +178,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
         $this->save($list, $user);
 
         if (null !== ($tags = $request->get('tags'))) {
-            $linker = $this->getDbService(\VuFind\Db\Service\TagService::class);
+            $linker = $this->getDbService(TagService::class);
             $linker->destroyListLinks($list, $user);
             foreach ($this->tagParser->parse($tags) as $tag) {
                 $this->addListTag($tag, $user, $list);
@@ -204,7 +204,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      */
     public function save(UserList $list, $user = false)
     {
-        if (!$list->editAllowed($user)) {
+        if (!$list->editAllowed($user ?: null)) {
             throw new ListPermissionException('list_access_denied');
         }
         if (empty($list->getTitle())) {
@@ -233,7 +233,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
     {
         $tagText = trim($tagText);
         if (!empty($tagText)) {
-            $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
+            $tagService = $this->getDbService(TagService::class);
             $tag = $tagService->getByText($tagText);
             $tagService->createLink(
                 $tag,
@@ -305,7 +305,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
         $dql = 'SELECT ul FROM ' . $this->getEntityClass(UserList::class) . ' ul ';
 
         $parameters = [];
-        $where = ['ul.public = 1'];
+        $where = ["ul.public = '1'"];
         if (!empty($includeFilter)) {
             $where[] = 'ul.id IN (:includeFilter)';
             $parameters['includeFilter'] = $includeFilter;
@@ -361,13 +361,15 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
         array $ids,
         string $source = DEFAULT_SEARCH_BACKEND
     ): void {
-        $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
-        if (!$list->editAllowed($user)) {
+        if ($user) {
+            $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
+        }
+        if (!$list->editAllowed($user ?: null)) {
             throw new ListPermissionException('list_access_denied');
         }
 
         // Retrieve a list of resource IDs:
-        $resources = $this->getDbService(\VuFind\Db\Service\ResourceService::class)
+        $resources = $this->getDbService(ResourceService::class)
             ->findResources($ids, $source);
 
         $resourceIDs = [];
@@ -376,7 +378,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
         }
 
         // Remove Resource (related tags are also removed implicitly)
-        $userResourceService = $this->getDbService(\VuFind\Db\Service\UserResourceService::class);
+        $userResourceService = $this->getDbService(UserResourceService::class);
         $userResourceService->destroyLinks(
             $user,
             $resourceIDs,
@@ -395,13 +397,15 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
      */
     public function delete($list, $user = false, $force = false)
     {
-        $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
-        if (!$force && !$list->editAllowed($user)) {
+        if ($user) {
+            $user = is_object($user) ? $user : $this->entityManager->getReference(User::class, $user);
+        }
+        if (!$force && !$list->editAllowed($user ?: null)) {
             throw new ListPermissionException('list_access_denied');
         }
 
         // Remove user_resource and resource_tags rows:
-        $userResourceService = $this->getDbService(\VuFind\Db\Service\UserResourceService::class);
+        $userResourceService = $this->getDbService(UserResourceService::class);
         $userResourceService->destroyLinks(
             $user,
             null,
@@ -409,7 +413,7 @@ class UserListService extends AbstractService implements LoggerAwareInterface, S
         );
 
         // Remove resource_tags rows for list tags:
-        $linker = $this->getDbService(\VuFind\Db\Service\TagService::class);
+        $linker = $this->getDbService(TagService::class);
         $linker->destroyListLinks($list, $user);
 
         // Remove the list itself:

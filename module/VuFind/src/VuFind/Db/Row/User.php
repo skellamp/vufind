@@ -66,12 +66,13 @@ use function count;
  * @property string  $last_language
  */
 class User extends RowGateway implements
+    \VuFind\Db\Interface\UserAccountInterface,
     \VuFind\Db\Table\DbTableAwareInterface,
     \LmcRbacMvc\Identity\IdentityInterface,
-    \VuFind\Db\Service\ServiceAwareInterface
+    \VuFind\Db\Service\DbServiceAwareInterface
 {
     use \VuFind\Db\Table\DbTableAwareTrait;
-    use \VuFind\Db\Service\ServiceAwareTrait;
+    use \VuFind\Db\Service\DbServiceAwareTrait;
 
     /**
      * Is encryption enabled?
@@ -143,6 +144,26 @@ class User extends RowGateway implements
     }
 
     /**
+     * Set ILS login credentials without saving them.
+     *
+     * @param string $username Username to save
+     * @param string $password Password to save
+     *
+     * @return void
+     */
+    public function setCredentials($username, $password)
+    {
+        $this->cat_username = $username;
+        if ($this->getUserService()->passwordEncryptionEnabled()) {
+            $this->cat_password = null;
+            $this->cat_pass_enc = $this->getUserService()->encrypt($password);
+        } else {
+            $this->cat_password = $password;
+            $this->cat_pass_enc = null;
+        }
+    }
+
+    /**
      * Save ILS login credentials.
      *
      * @param string $username Username to save
@@ -153,15 +174,7 @@ class User extends RowGateway implements
      */
     public function saveCredentials($username, $password)
     {
-        $this->cat_username = $username;
-        if ($this->getUserService()->passwordEncryptionEnabled()) {
-            $this->cat_password = null;
-            $this->cat_pass_enc = $this->getUserService()->encryptOrDecrypt($password, true);
-        } else {
-            $this->cat_password = $password;
-            $this->cat_pass_enc = null;
-        }
-
+        $this->setCredentials($username, $password);
         $result = $this->save();
 
         // Update library card entry after saving the user so that we always have a
@@ -199,7 +212,7 @@ class User extends RowGateway implements
     {
         if ($this->getUserService()->passwordEncryptionEnabled()) {
             return isset($this->cat_pass_enc)
-                ? $this->getUserService()->encryptOrDecrypt($this->cat_pass_enc, false) : null;
+                ? $this->getUserService()->decrypt($this->cat_pass_enc) : null;
         }
         return $this->cat_password ?? null;
     }
@@ -413,9 +426,20 @@ class User extends RowGateway implements
         $row = current($this->getUserCardService()->getLibraryCards($this->id, $id));
         if (!empty($row)) {
             $this->cat_username = $row->getCatUsername();
-            $this->cat_password = $row->getCatPassword();
-            $this->cat_pass_enc = $row->getCatPassEnc();
             $this->home_library = $row->getHomeLibrary();
+
+            // Make sure we're properly encrypting everything:
+            if ($this->getUserService()->passwordEncryptionEnabled()) {
+                $this->cat_password = null;
+                $this->cat_pass_enc = $row->getCatPassEnc();
+                if (empty($this->cat_pass_enc) && $row->getRawCatPassword()) {
+                    throw new \Exception('Unexpected raw password in library card ' . $row->getId());
+                }
+            } else {
+                $this->cat_password = $row->getRawCatPassword();
+                $this->cat_pass_enc = null;
+            }
+
             $this->save();
         }
     }
@@ -482,7 +506,7 @@ class User extends RowGateway implements
     /**
      * Get a UserCard service object.
      *
-     * @return \VuFind\Db\Service\AbstractService
+     * @return \VuFind\Db\Service\UserCardService
      */
     public function getUserCardService()
     {
@@ -492,7 +516,7 @@ class User extends RowGateway implements
     /**
      * Get a User service object.
      *
-     * @return \VuFind\Db\Service\AbstractService
+     * @return \VuFind\Db\Service\UserService
      */
     public function getUserService()
     {
@@ -589,5 +613,18 @@ class User extends RowGateway implements
     public function getRoles()
     {
         return ['loggedin'];
+    }
+
+    /**
+     * Get login token data
+     *
+     * @param string $userId user identifier
+     *
+     * @return array
+     */
+    public function getLoginTokens(string $userId): array
+    {
+        $tokenTable = $this->getDbTable('LoginToken');
+        return $tokenTable->getByUserId($userId);
     }
 }

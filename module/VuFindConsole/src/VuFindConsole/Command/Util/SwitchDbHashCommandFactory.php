@@ -68,9 +68,11 @@ class SwitchDbHashCommandFactory implements FactoryInterface
         $config = $container->get(\VuFind\Config\PluginManager::class)
             ->get('config');
         $tableManager = $container->get(\VuFind\Db\Table\PluginManager::class);
+        $serviceManager = $container->get(\VuFind\Db\Service\PluginManager::class);
         return new $requestedName(
             $config,
             $tableManager->get(\VuFind\Db\Table\User::class),
+            $serviceManager->get(\VuFind\Db\Service\UserCardService::class),
             null,
             $container->get(\VuFind\Config\PathResolver::class),
             ...($options ?? [])

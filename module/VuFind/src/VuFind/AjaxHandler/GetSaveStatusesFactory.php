@@ -71,7 +71,7 @@ class GetSaveStatusesFactory implements \Laminas\ServiceManager\Factory\FactoryI
         }
         return new $requestedName(
             $container->get(\VuFind\Session\Settings::class),
-            $container->get(\VuFind\Auth\Manager::class)->isLoggedIn(),
+            $container->get(\VuFind\Auth\Manager::class)->getUserObject(),
             $container->get(\VuFind\Db\Service\PluginManager::class)
                 ->get(\VuFind\Db\Service\UserResourceService::class),
             $container->get('ControllerPluginManager')->get('url')

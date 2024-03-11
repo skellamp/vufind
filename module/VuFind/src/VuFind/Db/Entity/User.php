@@ -41,7 +41,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  *
- * @ORM\Table(name="user",
+ * @ORM\Table(name="`user`",
  *          uniqueConstraints={@ORM\UniqueConstraint(name="cat_id",
  *                          columns={"cat_id"}),
  * @ORM\UniqueConstraint(name="username", columns={"username"})})
@@ -294,9 +294,9 @@ class User implements EntityInterface
     }
 
     /**
-     * Cat username setter
+     * Catalog username setter
      *
-     * @param ?string $catUsername Cat username
+     * @param ?string $catUsername Catalog username
      *
      * @return User
      */
@@ -307,7 +307,7 @@ class User implements EntityInterface
     }
 
     /**
-     * Get cat username.
+     * Get catalog username.
      *
      * @return ?string
      */
@@ -317,9 +317,9 @@ class User implements EntityInterface
     }
 
     /**
-     * Home library name setter
+     * Home library setter
      *
-     * @param ?string $homeLibrary Home Library
+     * @param ?string $homeLibrary Home library
      *
      * @return User
      */
@@ -340,30 +340,30 @@ class User implements EntityInterface
     }
 
     /**
-     * Cat password setter
+     * Raw catalog password setter
      *
      * @param ?string $catPassword Cat password
      *
      * @return User
      */
-    public function setCatPassword(?string $catPassword): User
+    public function setRawCatPassword(?string $catPassword): User
     {
         $this->catPassword = $catPassword;
         return $this;
     }
 
     /**
-     * Get cat password.
+     * Get raw catalog password.
      *
      * @return ?string
      */
-    public function getCatPassword(): ?string
+    public function getRawCatPassword(): ?string
     {
         return $this->catPassword;
     }
 
     /**
-     * Cat encrypted password setter
+     * Encrypted catalog password setter
      *
      * @param ?string $passEnc Encrypted password
      *
@@ -376,7 +376,7 @@ class User implements EntityInterface
     }
 
     /**
-     * Get cat encrypted password.
+     * Get encrypted catalog password.
      *
      * @return ?string
      */

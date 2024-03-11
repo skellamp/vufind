@@ -29,6 +29,8 @@
 
 namespace VuFind\Controller\Feature;
 
+use VuFind\Db\Service\UserCardService;
+
 use function count;
 
 /**
@@ -71,8 +73,9 @@ trait SecureDatabaseTrait
         // If we're correctly configured, check that the data in the database is ok:
         if ($status) {
             try {
-                $rows = $this->getTable('user')->getInsecureRows();
-                $status = (count($rows) == 0);
+                $userRows = $this->getTable('user')->getInsecureRows();
+                $cardRows = $this->getDbService(UserCardService::class)->getInsecureRows();
+                $status = (count($userRows) + count($cardRows) == 0);
             } catch (\Exception $e) {
                 // Any exception means we have a problem!
                 $status = false;

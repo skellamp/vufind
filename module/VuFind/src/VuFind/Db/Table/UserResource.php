@@ -41,9 +41,9 @@ use VuFind\Db\Row\RowGateway;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org Main Page
  */
-class UserResource extends Gateway implements \VuFind\Db\Service\ServiceAwareInterface
+class UserResource extends Gateway implements \VuFind\Db\Service\DbServiceAwareInterface
 {
-    use \VuFind\Db\Service\ServiceAwareTrait;
+    use \VuFind\Db\Service\DbServiceAwareTrait;
 
     /**
      * Constructor

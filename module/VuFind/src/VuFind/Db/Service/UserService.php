@@ -30,7 +30,7 @@
 namespace VuFind\Db\Service;
 
 use Doctrine\ORM\EntityManager;
-use Laminas\Crypt\BlockCipher as BlockCipher;
+use Laminas\Crypt\BlockCipher;
 use Laminas\Crypt\Symmetric\Openssl;
 use Laminas\Log\LoggerAwareInterface;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
@@ -48,10 +48,10 @@ use VuFind\Log\LoggerAwareTrait;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-class UserService extends AbstractService implements LoggerAwareInterface, ServiceAwareInterface
+class UserService extends AbstractDbService implements LoggerAwareInterface, DbServiceAwareInterface
 {
     use LoggerAwareTrait;
-    use ServiceAwareTrait;
+    use DbServiceAwareTrait;
 
     /**
      * Is encryption enabled?
@@ -130,6 +130,32 @@ class UserService extends AbstractService implements LoggerAwareInterface, Servi
     }
 
     /**
+     * Decrypt text.
+     *
+     * @param string $text The text to decrypt
+     *
+     * @return string|bool The decrypted string (or false if invalid)
+     * @throws \VuFind\Exception\PasswordSecurity
+     */
+    public function decrypt(string $text)
+    {
+        return $this->encryptOrDecrypt($text, false);
+    }
+
+    /**
+     * Encrypt text.
+     *
+     * @param string $text The text to encrypt
+     *
+     * @return string|bool The encrypted string (or false if invalid)
+     * @throws \VuFind\Exception\PasswordSecurity
+     */
+    public function encrypt(string $text)
+    {
+        return $this->encryptOrDecrypt($text, true);
+    }
+
+    /**
      * This is a central function for encrypting and decrypting so that
      * logic is all in one location
      *
@@ -137,10 +163,10 @@ class UserService extends AbstractService implements LoggerAwareInterface, Servi
      * @param bool   $encrypt True if we wish to encrypt text, False if we wish to
      * decrypt text.
      *
-     * @return string|bool    The encrypted/decrypted string
+     * @return string|bool    The encrypted/decrypted string (or false if invalid)
      * @throws \VuFind\Exception\PasswordSecurity
      */
-    public function encryptOrDecrypt($text, $encrypt = true)
+    protected function encryptOrDecrypt($text, $encrypt = true)
     {
         // Ignore empty text:
         if (empty($text)) {
@@ -209,18 +235,19 @@ class UserService extends AbstractService implements LoggerAwareInterface, Servi
         $replaceExisting = true
     ) {
         // Create the resource link if it doesn't exist and update the notes in any case:
-        $linkService = $this->getDbService(\VuFind\Db\Service\UserResourceService::class);
+        $linkService = $this->getDbService(UserResourceService::class);
         $linkService->createOrUpdateLink($resource, $user, $list, $notes);
 
         // If we're replacing existing tags, delete the old ones before adding the new ones:
         if ($replaceExisting) {
-            $unlinker = $this->getDbService(\VuFind\Db\Service\TagService::class);
-            $unlinker->destroyResourceLinks($resource, $user, $list);
+            $unlinker = $this->getDbService(TagService::class);
+            $resourceId = $resource instanceof Resource ? $resource->getId() : $resource;
+            $unlinker->destroyResourceLinks($resourceId, $user, $list);
         }
 
         // Add the new tags:
         foreach ($tagArray as $tag) {
-            $tagService = $this->getDbService(\VuFind\Db\Service\TagService::class);
+            $tagService = $this->getDbService(TagService::class);
             $tagService->addTag($resource, $tag, $user, $list);
         }
     }

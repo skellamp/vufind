@@ -109,7 +109,7 @@ trait LiveDatabaseTrait
         $options['cache_dir']
             = LOCAL_CACHE_DIR . '/' . $options['cache_dir'] . '_testmode';
         if (!is_dir($options['cache_dir'])) {
-            mkdir($options['cache_dir'], 0777, true);
+            mkdir($options['cache_dir'], 0o777, true);
         }
         $cacheAdapter = new \Laminas\Cache\Storage\Adapter\Filesystem($options);
         $cacheAdapter->addPlugin(new \Laminas\Cache\Storage\Plugin\Serializer());
@@ -167,6 +167,7 @@ trait LiveDatabaseTrait
         // Set up the bare minimum services to actually load real configs:
         $config = $this->getMergedConfig();
         $container = new \VuFindTest\Container\MockContainer($this);
+        $container->set(\VuFind\Log\Logger::class, $this->createMock(\Laminas\Log\LoggerInterface::class));
         $container->set('config', $config);
         $configManager = new \VuFind\Config\PluginManager(
             $container,
@@ -231,7 +232,7 @@ trait LiveDatabaseTrait
      *
      * @param string $name Name of table to load
      *
-     * @return \VuFind\Db\Service\AbstractService
+     * @return \VuFind\Db\Service\AbstractDbService
      */
     public function getDatabaseService($name)
     {
@@ -258,7 +259,7 @@ trait LiveDatabaseTrait
      */
     protected static function failIfDataExists(): void
     {
-        $test = new static();   // create instance of current class
+        $test = new static('');   // create instance of current class
         // Fail if the test does not include the LiveDetectionTrait.
         if (!$test->hasLiveDetectionTrait ?? false) {
             self::fail(
@@ -307,7 +308,7 @@ trait LiveDatabaseTrait
      */
     protected static function removeUsers($users)
     {
-        $test = new static();   // create instance of current class
+        $test = new static('');   // create instance of current class
         // Fail if the test does not include the LiveDetectionTrait.
         if (!$test->hasLiveDetectionTrait ?? false) {
             self::fail(

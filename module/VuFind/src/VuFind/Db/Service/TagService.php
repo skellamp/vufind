@@ -55,7 +55,7 @@ use function is_object;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-class TagService extends AbstractService implements LoggerAwareInterface
+class TagService extends AbstractDbService implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
@@ -260,7 +260,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
             $parameters['listId'] = $listId;
         }
         if ($publicOnly) {
-            $dql .= 'AND l.public = 1 ';
+            $dql .= "AND l.public = '1' ";
         }
         if ($tag) {
             if ($this->caseSensitive) {
@@ -908,8 +908,12 @@ class TagService extends AbstractService implements LoggerAwareInterface
         $limit = null,
         $fuzzy = true
     ) {
-        $dql = 'SELECT DISTINCT(r.id) AS resource, r '
-            . 'FROM ' . $this->getEntityClass(Tags::class) . ' t '
+        $orderByDetails = empty($sort) ? [] : ResourceService::getOrderByClause($sort);
+        $dql = 'SELECT DISTINCT(r.id) AS resource, r';
+        if (!empty($orderByDetails['extraSelect'])) {
+            $dql .= ', ' . $orderByDetails['extraSelect'];
+        }
+        $dql .= ' FROM ' . $this->getEntityClass(Tags::class) . ' t '
             . 'JOIN ' . $this->getEntityClass(ResourceTags::class) . ' rt WITH t.id = rt.tag '
             . 'JOIN ' . $this->getEntityClass(Resource::class) . ' r WITH r.id = rt.resource '
             . 'WHERE rt.resource IS NOT NULL ';
@@ -927,8 +931,8 @@ class TagService extends AbstractService implements LoggerAwareInterface
             $parameters['source'] = $source;
         }
 
-        if (!empty($sort)) {
-            $dql .= ResourceService::getOrderByClause($sort);
+        if (!empty($orderByDetails['orderByClause'])) {
+            $dql .= $orderByDetails['orderByClause'];
         }
 
         $query = $this->entityManager->createQuery($dql);
@@ -1191,7 +1195,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
      *
      * @return void
      */
-    public function deleteTag($resource, $tagText, $user, $list_id = null)
+    public function deleteTag(Resource $resource, $tagText, $user, $list_id = null)
     {
         $tagText = trim($tagText);
         if (!empty($tagText)) {
@@ -1201,7 +1205,7 @@ class TagService extends AbstractService implements LoggerAwareInterface
             }
             if (!empty($tagIds)) {
                 $this->destroyResourceLinks(
-                    $resource,
+                    $resource->getId(),
                     $user,
                     $list_id,
                     $tagIds

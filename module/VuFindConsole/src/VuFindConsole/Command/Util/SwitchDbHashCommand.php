@@ -31,6 +31,7 @@ namespace VuFindConsole\Command\Util;
 
 use Laminas\Config\Config;
 use Laminas\Crypt\BlockCipher;
+use Laminas\Crypt\Exception\InvalidArgumentException;
 use Laminas\Crypt\Symmetric\Openssl;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -39,6 +40,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use VuFind\Config\Locator as ConfigLocator;
 use VuFind\Config\PathResolver;
 use VuFind\Config\Writer as ConfigWriter;
+use VuFind\Db\Entity\UserCard as UserCard;
+use VuFind\Db\Row\User as UserRow;
+use VuFind\Db\Service\AbstractDbService;
+use VuFind\Db\Service\UserCardService;
 use VuFind\Db\Table\User as UserTable;
 
 use function count;
@@ -76,6 +81,13 @@ class SwitchDbHashCommand extends Command
     protected $userTable;
 
     /**
+     * UserCard database service
+     *
+     * @var UserCardService
+     */
+    protected $userCardService;
+
+    /**
      * Config file path resolver
      *
      * @var PathResolver
@@ -85,20 +97,23 @@ class SwitchDbHashCommand extends Command
     /**
      * Constructor
      *
-     * @param Config       $config       VuFind configuration
-     * @param UserTable    $userTable    User table gateway
-     * @param string|null  $name         The name of the command; passing null means
+     * @param Config          $config          VuFind configuration
+     * @param UserTable       $userTable       User table gateway
+     * @param UserCardService $userCardService UserCard database service
+     * @param string|null     $name            The name of the command; passing null means
      * it must be set in configure()
-     * @param PathResolver $pathResolver Config file path resolver
+     * @param PathResolver    $pathResolver    Config file path resolver
      */
     public function __construct(
         Config $config,
         UserTable $userTable,
+        UserCardService $userCardService,
         $name = null,
         PathResolver $pathResolver = null
     ) {
         $this->config = $config;
         $this->userTable = $userTable;
+        $this->userCardService = $userCardService;
         $this->pathResolver = $pathResolver;
         parent::__construct($name);
     }
@@ -143,6 +158,48 @@ class SwitchDbHashCommand extends Command
     protected function getOpenSsl($algorithm)
     {
         return ($algorithm == 'none') ? null : new Openssl(compact('algorithm'));
+    }
+
+    /**
+     * Re-encrypt a row.
+     *
+     * @param UserRow      $row       Row to update
+     * @param ?BlockCipher $oldcipher Old cipher (null for none)
+     * @param BlockCipher  $newcipher New cipher
+     *
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    protected function fixRow($row, ?BlockCipher $oldcipher, BlockCipher $newcipher): void
+    {
+        $pass = ($oldcipher && $row['cat_pass_enc'] !== null)
+            ? $oldcipher->decrypt($row['cat_pass_enc'])
+            : $row['cat_password'];
+        $row['cat_password'] = null;
+        $row['cat_pass_enc'] = $pass === null ? null : $newcipher->encrypt($pass);
+        $row->save();
+    }
+
+    /**
+     * Re-encrypt an entity.
+     *
+     * @param AbstractDbService $service   Database service
+     * @param UserCard          $entity    Row to update
+     * @param ?BlockCipher      $oldcipher Old cipher (null for none)
+     * @param BlockCipher       $newcipher New cipher
+     *
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    protected function fixEntity($service, $entity, ?BlockCipher $oldcipher, BlockCipher $newcipher): void
+    {
+        $oldEncrypted = $entity->getCatPassEnc();
+        $pass = ($oldcipher && $oldEncrypted !== null)
+            ? $oldcipher->decrypt($oldEncrypted)
+            : $entity->getRawCatPassword();
+        $entity->setRawCatPassword(null);
+        $entity->setCatPassEnc($pass === null ? null : $newcipher->encrypt($pass));
+        $service->persistEntity($entity);
     }
 
     /**
@@ -211,32 +268,39 @@ class SwitchDbHashCommand extends Command
             return 1;
         }
 
+        // Set up ciphers for use below:
+        if ($oldhash != 'none') {
+            $oldcipher = new BlockCipher($oldCrypt);
+            $oldcipher->setKey($oldkey);
+        } else {
+            $oldcipher = null;
+        }
+        $newcipher = new BlockCipher($newCrypt);
+        $newcipher->setKey($newkey);
+
         // Now do the database rewrite:
-        $users = $this->userTable->select(
-            function ($select) {
-                $select->where->isNotNull('cat_username');
-            }
-        );
+        $callback = function ($select) {
+            $select->where->isNotNull('cat_username');
+        };
+        $users = $this->userTable->select($callback);
+        $cards = $this->userCardService->getAllRowsWithUsernames();
         $output->writeln("\tConverting hashes for " . count($users) . ' user(s).');
         foreach ($users as $row) {
-            $pass = null;
-            if ($oldhash != 'none' && $row['cat_pass_enc'] ?? null !== null) {
-                try {
-                    $oldcipher = new BlockCipher($oldCrypt);
-                    $oldcipher->setKey($oldkey);
-                    $pass = $oldcipher->decrypt($row['cat_pass_enc']);
-                } catch (\Exception $e) {
-                    $output->writeln("Problem with user {$row['username']}: " . (string)$e);
-                    continue;
-                }
-            } else {
-                $pass = $row['cat_password'];
+            try {
+                $this->fixRow($row, $oldcipher, $newcipher);
+            } catch (\Exception $e) {
+                $output->writeln("Problem with user {$row['username']}: " . (string)$e);
             }
-            $newcipher = new BlockCipher($newCrypt);
-            $newcipher->setKey($newkey);
-            $row['cat_password'] = null;
-            $row['cat_pass_enc'] = $pass === null ? null : $newcipher->encrypt($pass);
-            $row->save();
+        }
+        if (count($cards) > 0) {
+            $output->writeln("\tConverting hashes for " . count($cards) . ' card(s).');
+            foreach ($cards as $entity) {
+                try {
+                    $this->fixEntity($this->userCardService, $entity, $oldcipher, $newcipher);
+                } catch (\Exception $e) {
+                    $output->writeln("Problem with card {$entity->getId()}: " . (string)$e);
+                }
+            }
         }
 
         // If we got this far, all went well!
