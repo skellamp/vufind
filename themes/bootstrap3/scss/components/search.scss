@@ -298,7 +298,12 @@ header .container.navbar { margin-bottom: 0; }
 .savedLists {
   @extend .alert;
   @extend .alert-info;
+  padding: 0.4rem;
   display: none;
+
+  ul {
+    padding-left: 1rem;
+  }
 }
 
 .result-citation-links {
@@ -700,6 +705,10 @@ body.rtl {
   @extend .table;
   @extend .table-striped;
   @extend .table-responsive;
+
+  td.history_results, td.history_actions {
+    word-wrap: normal;
+  }
 }
 table.search-history-table {
   table-layout: auto;
@@ -773,8 +782,14 @@ table.search-history-table {
     .mainbody,
     .sidebar {
       float: none;
+    }
+    .mainbody {
       width: auto;
       padding: 0;
+      margin-bottom: 1rem;
+    }
+    &:not(.vufind-offcanvas.active) .sidebar {
+      width: auto;
     }
   }
 }

@@ -46,20 +46,9 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      * @var array
      */
     protected $aliases = [
-        'changetracker' => ChangeTrackerService::class,
-        'comments' => CommentsService::class,
-        'feedback' => FeedbackService::class,
-        'oairesumption' => OaiResumptionService::class,
-        'ratings' => RatingsService::class,
-        'record' => RecordService::class,
-        'resource' => ResourceService::class,
-        'session' => SessionService::class,
-        'shortlinks' => ShortlinksService::class,
-        'tag' => TagService::class,
-        'user' => UserService::class,
-        'usercard' => UserCardService::class,
-        'userlist' => UserListService::class,
-        'userresource' => UserResourceService::class,
+        AccessTokenServiceInterface::class => AccessTokenService::class,
+        TagServiceInterface::class => TagService::class,
+        UserServiceInterface::class => UserService::class,
     ];
 
     /**
@@ -68,6 +57,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      * @var array
      */
     protected $factories = [
+        AccessTokenService::class => AccessTokenServiceFactory::class,
         ChangeTrackerService::class => AbstractDbServiceFactory::class,
         CommentsService::class => AbstractDbServiceFactory::class,
         FeedbackService::class => AbstractDbServiceFactory::class,
@@ -78,8 +68,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         SessionService::class => AbstractDbServiceFactory::class,
         ShortlinksService::class => AbstractDbServiceFactory::class,
         TagService::class => TagServiceFactory::class,
-        UserService::class => UserServiceFactory::class,
-        UserCardService::class => AbstractDbServiceFactory::class,
+        UserService::class => AbstractDbServiceFactory::class,
+        UserCardService::class => UserCardServiceFactory::class,
         UserListService::class => UserListServiceFactory::class,
         UserResourceService::class => AbstractDbServiceFactory::class,
     ];
@@ -92,6 +82,6 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      */
     protected function getExpectedInterface()
     {
-        return AbstractDbService::class;
+        return DbServiceInterface::class;
     }
 }

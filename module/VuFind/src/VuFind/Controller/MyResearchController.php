@@ -394,7 +394,7 @@ class MyResearchController extends AbstractBase
             $logoutTarget = $this->getServerUrl($config->Site->logOutRoute);
         } else {
             $logoutTarget = $this->getRequest()->getServer()->get('HTTP_REFERER');
-            if (empty($logoutTarget)) {
+            if (empty($logoutTarget) || !$this->isLocalUrl($logoutTarget)) {
                 $logoutTarget = $this->getServerUrl('home');
             }
 
@@ -557,8 +557,7 @@ class MyResearchController extends AbstractBase
             throw new BadRequestException('searchid missing');
         }
         // Require login.
-        $user = $this->getUser();
-        if ($user == false) {
+        if (!($user = $this->getUser())) {
             return $this->forceLogin();
         }
         // Get the row, and fail if the current user doesn't own it.
@@ -647,8 +646,7 @@ class MyResearchController extends AbstractBase
             throw new ForbiddenException('Saved searches disabled.');
         }
 
-        $user = $this->getUser();
-        if ($user == false) {
+        if (!($user = $this->getUser())) {
             return $this->forceLogin();
         }
 
@@ -845,8 +843,7 @@ class MyResearchController extends AbstractBase
     public function deleteAction()
     {
         // Force login:
-        $user = $this->getUser();
-        if (!$user) {
+        if (!($user = $this->getUser())) {
             return $this->forceLogin();
         }
 
@@ -905,8 +902,7 @@ class MyResearchController extends AbstractBase
     public function performDeleteFavorite($id, $source)
     {
         // Force login:
-        $user = $this->getUser();
-        if (!$user) {
+        if (!($user = $this->getUser())) {
             return $this->forceLogin();
         }
 
@@ -989,8 +985,7 @@ class MyResearchController extends AbstractBase
     public function editAction()
     {
         // Force login:
-        $user = $this->getUser();
-        if (!$user) {
+        if (!($user = $this->getUser())) {
             return $this->forceLogin();
         }
 
@@ -1330,8 +1325,7 @@ class MyResearchController extends AbstractBase
                 // Success Message
                 $this->flashMessenger()->addMessage('fav_list_delete', 'success');
             } catch (LoginRequiredException | ListPermissionException $e) {
-                $user = $this->getUser();
-                if ($user == false) {
+                if (!$this->getUser()) {
                     return $this->forceLogin();
                 }
                 // Logged in? Then we have to rethrow the exception!
@@ -1932,10 +1926,9 @@ class MyResearchController extends AbstractBase
                 return $this->forwardTo('MyResearch', 'Login');
             } else {
                 $table = $this->getTable('User');
-                $user = $table->getByVerifyHash($hash);
                 // If the hash is valid, forward user to create new password
                 // Also treat email address as verified
-                if (null != $user) {
+                if ($user = $table->getByVerifyHash($hash)) {
                     $user->saveEmailVerified();
                     $this->setUpAuthenticationFromRequest();
                     $view = $this->createViewModel();
@@ -1974,9 +1967,8 @@ class MyResearchController extends AbstractBase
                 return $this->forwardTo('MyResearch', 'Profile');
             } else {
                 $table = $this->getTable('User');
-                $user = $table->getByVerifyHash($hash);
                 // If the hash is valid, store validation in DB and forward to login
-                if (null != $user) {
+                if ($user = $table->getByVerifyHash($hash)) {
                     // Apply pending email address change, if applicable:
                     if (!empty($user->pending_email)) {
                         $user->updateEmail($user->pending_email, true);
@@ -2094,7 +2086,7 @@ class MyResearchController extends AbstractBase
     public function changeEmailAction()
     {
         // Always check that we are logged in and function is enabled first:
-        if (!$this->getAuthManager()->getIdentity()) {
+        if (!($user = $this->getUser())) {
             return $this->forceLogin();
         }
         if (!$this->getAuthManager()->supportsEmailChange()) {
@@ -2103,7 +2095,6 @@ class MyResearchController extends AbstractBase
         }
         $view = $this->createViewModel($this->params()->fromPost());
         // Display email
-        $user = $this->getUser();
         $view->email = $user->email;
         // Identification
         $view->useCaptcha = $this->captcha()->active('changeEmail');

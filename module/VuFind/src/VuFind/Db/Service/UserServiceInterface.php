@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Interface for representing a user account record.
+ * Database service interface for users.
  *
  * PHP version 8
  *
- * Copyright (C) Villanova University 2024.
+ * Copyright (C) The National Library of Finland 2024.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -21,23 +21,33 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * @category VuFind
- * @package  Db_Interface
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @package  Database
+ * @author   Aleksi Peebles <aleksi.peebles@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org Main Site
+ * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
 
-namespace VuFind\Db\Interface;
+namespace VuFind\Db\Service;
+
+use VuFind\Db\Entity\UserEntityInterface;
 
 /**
- * Interface for representing a user account record.
+ * Database service interface for users.
  *
  * @category VuFind
- * @package  Db_Interface
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @package  Database
+ * @author   Aleksi Peebles <aleksi.peebles@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org Main Site
+ * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-interface UserAccountInterface
+interface UserServiceInterface extends DbServiceInterface
 {
+    /**
+     * Retrieve a user object from the database based on ID.
+     *
+     * @param string $id ID.
+     *
+     * @return UserEntityInterface
+     */
+    public function getUserById($id);
 }

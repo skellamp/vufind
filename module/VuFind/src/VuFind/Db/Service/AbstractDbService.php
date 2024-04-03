@@ -30,6 +30,7 @@
 namespace VuFind\Db\Service;
 
 use Doctrine\ORM\EntityManager;
+use Laminas\Db\RowGateway\AbstractRowGateway;
 use VuFind\Db\Entity\EntityInterface;
 use VuFind\Db\Entity\PluginManager as EntityPluginManager;
 
@@ -42,22 +43,8 @@ use VuFind\Db\Entity\PluginManager as EntityPluginManager;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development:plugins:database_gateways Wiki
  */
-abstract class AbstractDbService
+abstract class AbstractDbService implements DbServiceInterface
 {
-    /**
-     * Doctrine ORM entity manager
-     *
-     * @var EntityManager
-     */
-    protected $entityManager;
-
-    /**
-     * VuFind entity plugin manager
-     *
-     * @var EntityPluginManager
-     */
-    protected $entityPluginManager;
-
     /**
      * Constructor
      *
@@ -65,11 +52,9 @@ abstract class AbstractDbService
      * @param EntityPluginManager $entityPluginManager VuFind entity plugin manager
      */
     public function __construct(
-        EntityManager $entityManager,
-        EntityPluginManager $entityPluginManager
+        protected EntityManager $entityManager,
+        protected EntityPluginManager $entityPluginManager
     ) {
-        $this->entityManager = $entityManager;
-        $this->entityPluginManager = $entityPluginManager;
     }
 
     /**
@@ -94,6 +79,11 @@ abstract class AbstractDbService
      */
     public function persistEntity(EntityInterface $entity): void
     {
+        // Compatibility with legacy \VuFind\Db\Row objects:
+        if ($entity instanceof AbstractRowGateway) {
+            $entity->save();
+            return;
+        }
         $this->entityManager->persist($entity);
         $this->entityManager->flush();
     }

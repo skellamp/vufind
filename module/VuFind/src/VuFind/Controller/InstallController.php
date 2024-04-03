@@ -33,7 +33,6 @@ use Laminas\Crypt\Password\Bcrypt;
 use Laminas\Mvc\MvcEvent;
 use VuFind\Config\Writer as ConfigWriter;
 use VuFind\Db\Service\UserCardService;
-use VuFind\Db\Service\UserService;
 use VuFindSearch\Command\RetrieveCommand;
 
 use function count;
@@ -571,7 +570,11 @@ class InstallController extends AbstractBase
         if (in_array($config->Catalog->driver, ['Sample', 'Demo'])) {
             $status = false;
         } else {
-            $status = 'ils-offline' !== $this->getILS()->getOfflineMode(true);
+            try {
+                $status = 'ils-offline' !== $this->getILS()->getOfflineMode(true);
+            } catch (\Exception $e) {
+                $status = false;
+            }
         }
         return ['title' => 'ILS', 'status' => $status, 'fix' => 'fixils'];
     }
@@ -808,7 +811,6 @@ class InstallController extends AbstractBase
 
         // Now we want to loop through the database and update passwords (if
         // necessary).
-        $userService = $this->getDbService(UserService::class);
         $userRows = $this->getTable('user')->getInsecureRows();
         if (count($userRows) > 0) {
             $bcrypt = new Bcrypt();
@@ -827,10 +829,11 @@ class InstallController extends AbstractBase
             $this->flashMessenger()->addMessage($msg, 'info');
         }
         $cardService = $this->getDbService(UserCardService::class);
+        $ilsAuthenticator = $this->serviceLocator->get(\VuFind\Auth\ILSAuthenticator::class);
         $cardRows = $cardService->getInsecureRows();
         if (count($cardRows) > 0) {
             foreach ($cardRows as $row) {
-                $row->setCatPassEnc($userService->encrypt($row->getRawCatPassword()));
+                $row->setCatPassEnc($ilsAuthenticator->encrypt($row->getRawCatPassword()));
                 $row->setRawCatPassword(null);
                 $cardService->persistEntity($row);
             }

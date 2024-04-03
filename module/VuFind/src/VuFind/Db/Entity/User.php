@@ -47,7 +47,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\UniqueConstraint(name="username", columns={"username"})})
  * @ORM\Entity
  */
-class User implements EntityInterface
+class User implements UserEntityInterface
 {
     /**
      * Unique ID.
@@ -261,7 +261,7 @@ class User implements EntityInterface
     protected $lastLanguage = '';
 
     /**
-     * Id getter
+     * Get identifier.
      *
      * @return int
      */
@@ -275,9 +275,9 @@ class User implements EntityInterface
      *
      * @param string $username Username
      *
-     * @return User
+     * @return UserEntityInterface
      */
-    public function setUsername(string $username): User
+    public function setUsername(string $username): UserEntityInterface
     {
         $this->username = $username;
         return $this;
@@ -294,13 +294,79 @@ class User implements EntityInterface
     }
 
     /**
+     * Get firstname.
+     *
+     * @return string
+     */
+    public function getFirstname(): string
+    {
+        return $this->firstname;
+    }
+
+    /**
+     * Get lastname.
+     *
+     * @return string
+     */
+    public function getLastname(): string
+    {
+        return $this->lastname;
+    }
+
+    /**
+     * Set email.
+     *
+     * @param string $email Email address
+     *
+     * @return UserEntityInterface
+     */
+    public function setEmail(string $email): UserEntityInterface
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    /**
+     * Get email.
+     *
+     * @return string
+     */
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    /**
+     * Set pending email.
+     *
+     * @param string $email New pending email
+     *
+     * @return UserEntityInterface
+     */
+    public function setPendingEmail(string $email): UserEntityInterface
+    {
+        $this->pendingEmail = $email;
+        return $this;
+    }
+
+    /**
+     * Get pending email.
+     *
+     * @return string
+     */
+    public function getPendingEmail(): string
+    {
+        return $this->pendingEmail;
+    }
+
+    /**
      * Catalog username setter
      *
      * @param ?string $catUsername Catalog username
      *
-     * @return User
+     * @return UserEntityInterface
      */
-    public function setCatUsername(?string $catUsername): User
+    public function setCatUsername(?string $catUsername): UserEntityInterface
     {
         $this->catUsername = $catUsername;
         return $this;
@@ -321,9 +387,9 @@ class User implements EntityInterface
      *
      * @param ?string $homeLibrary Home library
      *
-     * @return User
+     * @return UserEntityInterface
      */
-    public function setHomeLibrary(?string $homeLibrary): User
+    public function setHomeLibrary(?string $homeLibrary): UserEntityInterface
     {
         $this->homeLibrary = $homeLibrary;
         return $this;
@@ -344,9 +410,9 @@ class User implements EntityInterface
      *
      * @param ?string $catPassword Cat password
      *
-     * @return User
+     * @return UserEntityInterface
      */
-    public function setRawCatPassword(?string $catPassword): User
+    public function setRawCatPassword(?string $catPassword): UserEntityInterface
     {
         $this->catPassword = $catPassword;
         return $this;
@@ -367,9 +433,9 @@ class User implements EntityInterface
      *
      * @param ?string $passEnc Encrypted password
      *
-     * @return User
+     * @return UserEntityInterface
      */
-    public function setCatPassEnc(?string $passEnc): User
+    public function setCatPassEnc(?string $passEnc): UserEntityInterface
     {
         $this->catPassEnc = $passEnc;
         return $this;
@@ -383,5 +449,25 @@ class User implements EntityInterface
     public function getCatPassEnc(): ?string
     {
         return $this->catPassEnc;
+    }
+
+    /**
+     * Get verification hash for recovery.
+     *
+     * @return string
+     */
+    public function getVerifyHash(): string
+    {
+        return $this->verifyHash;
+    }
+
+    /**
+     * Get last language.
+     *
+     * @return string
+     */
+    public function getLastLanguage(): string
+    {
+        return $this->lastLanguage;
     }
 }
